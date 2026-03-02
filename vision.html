@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI | Vision Lab (Final)</title>
+    <title>CustomsAI | Vision Lab (Yeni Key v5.2)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -27,14 +27,15 @@
     <div class="text-center">
         <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left me-2"></i> Ana Panele Dön</a>
         <h2 class="fw-bold">Vision <span style="color:var(--primary)">Lab</span></h2>
-        <p class="opacity-75 small">Görsel Analiz Sistemi</p>
+        <p class="opacity-75 small">Yapay Zeka Görsel Analiz Sistemi</p>
     </div>
 
     <div class="glass-card">
         <div class="preview-area" onclick="document.getElementById('fileInput').click()">
             <div id="uploadPrompt">
-                <i class="fa-solid fa-camera fa-3x mb-3 text-info"></i>
-                <h6>Görsel Seç</h6>
+                <i class="fa-solid fa-cloud-arrow-up fa-3x mb-3 text-info"></i>
+                <h6>Fotoğraf Yükle veya Çek</h6>
+                <p class="small opacity-50">Ürün veya Etiket Görseli</p>
             </div>
             <img id="previewImg">
             <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFile(this)">
@@ -42,21 +43,23 @@
 
         <div class="input-box">
             <small class="text-info d-block mb-1">MENŞE ÜLKE</small>
-            <input type="text" id="ulke" placeholder="Örn: Almanya">
+            <input type="text" id="ulke" placeholder="Örn: Çin">
         </div>
 
-        <button id="analizBtn" onclick="visionAnaliz()" class="btn btn-vision">ANALİZ ET</button>
+        <button id="analizBtn" onclick="visionAnaliz()" class="btn btn-vision">ANALİZİ BAŞLAT</button>
         <div class="loader" id="loader"></div>
 
         <div id="sonuc">
-            <h5 class="text-info-bright mb-3">AI Raporu</h5>
-            <div id="rapor" class="small lh-lg" style="color: #cbd5e1;"></div>
+            <h5 class="text-info-bright mb-3"><i class="fa-solid fa-microchip me-2"></i> AI Analiz Raporu</h5>
+            <div id="rapor" class="small lh-lg" style="color: #cbd5e1; white-space: pre-wrap;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const API_KEY = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
+    // YENİ ANAHTARIN BURADA
+    const API_KEY = "AIzaSyAXbBgWbTAu3VXGXWYzFlJYg36uDo-lmY4"; 
+    const MODEL_NAME = "gemini-1.5-flash";
 
     function handleFile(input) {
         const file = input.files[0];
@@ -80,7 +83,7 @@
         const file = fileInput.files[0];
 
         if (!file || !ulke) {
-            alert("Eksik bilgi!");
+            alert("Lütfen görsel seçin ve menşe ülkeyi belirtin!");
             return;
         }
 
@@ -91,18 +94,17 @@
         try {
             const base64Data = document.getElementById('previewImg').src.split(',')[1];
             
-            // PAYLOAD: En sade ve garantici yapı
             const payload = {
                 contents: [{
                     parts: [
-                        { text: `Gümrük müşaviri olarak bu ${ulke} menşeli görseli analiz et.` },
+                        { text: `Sen bir gümrük uzmanısın. Bu ${ulke} menşeli ürünün fotoğrafını analiz et. Tahmini GTİP kodu ve ithalat vergileri hakkında bilgi ver.` },
                         { inline_data: { mime_type: file.type, data: base64Data } }
                     ]
                 }]
             };
 
-            // URL: v1beta yerine v1 kullanarak ve models/ ön ekini URL içinde vererek çağırıyoruz
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            // En garanti URL yapısı (v1beta üzerinden)
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
             const response = await fetch(url, {
                 method: "POST",
@@ -113,38 +115,24 @@
             const data = await response.json();
 
             if (data.error) {
-                // Eğer v1 hata verirse, manuel olarak v1beta'yı dene
-                console.warn("v1 hata verdi, v1beta deneniyor...");
-                const urlBeta = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                const resBeta = await fetch(urlBeta, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                const dataBeta = await resBeta.json();
-                
-                if (dataBeta.error) {
-                    alert("Kritik Hata: " + dataBeta.error.message);
-                    return;
-                }
-                showResult(dataBeta);
-            } else {
-                showResult(data);
+                console.error("API Hatası:", data.error);
+                alert("Google Sistem Mesajı: " + data.error.message);
+                return;
+            }
+
+            if (data.candidates && data.candidates[0].content) {
+                const text = data.candidates[0].content.parts[0].text;
+                document.getElementById('rapor').innerHTML = text
+                    .replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--primary)">$1</b>')
+                    .replace(/\n/g, '<br>');
+                sonucDiv.style.display = 'block';
             }
 
         } catch (error) {
-            alert("Bağlantı hatası!");
+            alert("Bağlantı hatası! Lütfen tekrar deneyin.");
         } finally {
             btn.disabled = false;
             loader.style.display = "none";
-        }
-    }
-
-    function showResult(data) {
-        if (data.candidates && data.candidates[0].content) {
-            const text = data.candidates[0].content.parts[0].text;
-            document.getElementById('rapor').innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            document.getElementById('sonuc').style.display = 'block';
         }
     }
 </script>
