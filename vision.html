@@ -59,9 +59,9 @@
 </div>
 
 <script>
-    // ANAHTAR VE MODEL TANIMLARI
+    // 1. AYARLAR: index.html ile aynı mantık
     const API_KEY = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
-    const MODEL_NAME = "gemini-1.5-flash"; 
+    const MODEL_NAME = "gemini-1.5-flash-latest"; // "-latest" eki bazen kilit açar
 
     function handleFile(input) {
         const file = input.files[0];
@@ -96,24 +96,25 @@
         try {
             const base64Data = document.getElementById('previewImg').src.split(',')[1];
 
-            const promptText = `Sen uzman bir gümrük müşavirisin. Ekteki görseldeki ${ulke} menşeli ürünü/belgeyi incele. 
-            Şu formatta cevap ver:
-            - Tahmini GTİP Kodu (8-12 hane)
-            - Ürün Kısa Tanımı
-            - Vergi Oranları Tahmini (Gümrük, KDV)
-            - Gerekli Başlıca Belgeler (TSE, CE, Kayıt Belgesi vb.)`;
+            const promptText = `Gümrük müşaviri olarak bu ${ulke} menşeli görseli analiz et. GTİP kodu, vergi oranları ve gerekli belgeleri belirt.`;
 
+            // Google'ın en sevdiği JSON yapısı
             const payload = {
-                contents: [{
-                    parts: [
-                        { text: promptText },
-                        { inline_data: { mime_type: file.type, data: base64Data } }
+                "contents": [{
+                    "parts": [
+                        { "text": promptText },
+                        {
+                            "inline_data": {
+                                "mime_type": file.type,
+                                "data": base64Data
+                            }
+                        }
                     ]
                 }]
             };
 
-            // URL YAPISINI EN STANDART (INDEX.HTML GİBİ) HALE GETİRDİK
-            const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL_NAME + ":generateContent?key=" + API_KEY;
+            // URL: v1beta kullanıyoruz
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
             const response = await fetch(url, {
                 method: "POST",
@@ -124,7 +125,8 @@
             const data = await response.json();
 
             if (data.error) {
-                console.error("API Hatası:", data.error);
+                console.error("Detaylı Hata:", data.error);
+                // EĞER HALA MODEL BULUNAMADI DERSE: gemini-1.5-flash (latest'siz) dene
                 alert("Hata Mesajı: " + data.error.message);
                 return;
             }
@@ -136,12 +138,12 @@
                     .replace(/\n/g, '<br>');
                 sonucDiv.style.display = 'block';
             } else {
-                alert("Model bu görseli anlamlandıramadı. Lütfen daha net bir fotoğraf çekin.");
+                alert("Model bu görseli okuyamadı. Lütfen daha net bir fotoğraf çekin.");
             }
 
         } catch (error) {
-            console.error("Bağlantı Hatası:", error);
-            alert("İnternet veya Bağlantı Hatası!");
+            console.error("Sistem Hatası:", error);
+            alert("Bağlantı hatası! Lütfen interneti kontrol et.");
         } finally {
             btn.disabled = false;
             loader.style.display = "none";
