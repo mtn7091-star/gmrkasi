@@ -3,119 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI Pro | 2.5 Flash Platform</title>
+    <title>CustomsAI Pro | Akıllı Gümrük Platformu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #00f2fe; --secondary: #4facfe; --dark: #0b1120; --text-bright: #f8fafc; }
+        
+        /* KARANLIK TEMA (VARSAYILAN) */
         body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: var(--text-bright); font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; padding-top: 50px; transition: 0.3s; }
         .glass-card { backdrop-filter: blur(15px); background: rgba(30, 41, 59, 0.8); border-radius: 24px; padding: 30px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); transition: 0.3s; }
-        .input-box { background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; border-radius: 12px; padding: 12px; margin-bottom: 15px; }
+        .input-box { background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; border-radius: 12px; padding: 12px; margin-bottom: 15px; transition: 0.3s; }
         .input-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+        .history-item { background: rgba(22, 30, 46, 0.8); border: 1px solid #334155; border-radius: 12px; padding: 15px; margin-bottom: 15px; transition: 0.3s; }
+
+        /* AYDINLIK TEMA AYARLARI */
         body.light-mode { background: radial-gradient(circle at top right, #f8fafc, #e2e8f0); color: #1e293b; }
-        body.light-mode .glass-card { background: rgba(255, 255, 255, 0.9); color: #1e293b; border: 1px solid rgba(0,0,0,0.1); }
+        body.light-mode .glass-card { background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); color: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         body.light-mode .input-box { background: #ffffff; border-color: #cbd5e1; }
         body.light-mode .input-box input { color: #1e293b; }
+        body.light-mode .history-item { background: #ffffff; border-color: #e2e8f0; color: #1e293b; }
         body.light-mode .marketing-text { color: #475569 !important; }
-        .btn-premium { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; border-radius: 12px; padding: 15px; transition: 0.3s; text-transform: uppercase; }
-        .evrak-box { background: rgba(0, 242, 254, 0.1); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px dashed var(--primary); }
-        .preview-img { max-width: 150px; border-radius: 12px; margin: 10px auto; display: none; border: 2px solid var(--primary); }
-        .hidden { display: none !important; }
-        .feature-icon { color: var(--primary); font-size: 2rem; margin-bottom: 15px; }
-        .history-item { background: rgba(22, 30, 46, 0.8); border: 1px solid #334155; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        body.light-mode h1, body.light-mode h4, body.light-mode h5 { color: #0f172a; }
+
+        /* ORTAK BİLEŞENLER */
+        .auth-card { max-width: 480px; margin: auto; height: 100%; }
+        .app-card { max-width: 950px; margin: auto; }
         .text-info-bright { color: var(--primary) !important; font-weight: 600; }
+        .marketing-text { color: #cbd5e1 !important; line-height: 1.6; }
+        .btn-premium { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; border-radius: 12px; padding: 15px; transition: 0.3s; text-transform: uppercase; }
+        .btn-premium:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0, 242, 254, 0.4); }
+        .hidden { display: none !important; }
+        .feature-icon { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2rem; margin-bottom: 15px; }
+        
+        /* EVRAK KUTUSU */
+        .evrak-box { background: rgba(0, 242, 254, 0.1); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px dashed var(--primary); }
+        .evrak-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    
     <div id="authSection">
         <div class="text-center mb-5">
-            <h1 class="fw-bold">CustomsAI <span style="color:var(--primary)">Pro</span></h1>
-            <p class="marketing-text">Gemini 2.5 Flash ile Geleceğin Gümrükleme Teknolojisi.</p>
+            <h1 class="fw-bold mb-3">CustomsAI <span class="text-info-bright">Pro</span></h1>
+            <p class="marketing-text">Türkiye'nen ilk yapay zeka destekli gümrük müşavir asistanı.</p>
         </div>
+
         <div class="row g-4 justify-content-center">
             <div class="col-md-5">
-                <div class="glass-card text-center h-100 border-info">
-                    <i class="fa-solid fa-bolt feature-icon"></i>
-                    <h4 class="fw-bold">Hızlı Deneme</h4>
-                    <div class="input-box"><input type="text" id="freeUrun" placeholder="Ürün Adı"></div>
-                    <div class="input-box"><input type="text" id="freeUlke" placeholder="Ülke"></div>
-                    <button onclick="freeAnaliz()" id="freeBtn" class="btn btn-outline-info w-100 p-3 fw-bold mb-3 text-white">2.5 FLASH SORGULA</button>
-                    <div id="freeSonuc" class="mt-2 hidden text-start small border-top border-secondary pt-2">
-                        <div id="freeRapor" class="marketing-text"></div>
+                <div class="glass-card auth-card border-info">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-bolt feature-icon"></i>
+                        <h4 class="fw-bold">Hızlı Deneme</h4>
+                        <p class="small marketing-text">Kayıt olmadan temel verileri öğrenin.</p>
+                    </div>
+                    <div class="input-box"><input type="text" id="freeUrun" placeholder="Ürün (Örn: Drone)"></div>
+                    <div class="input-box"><input type="text" id="freeUlke" placeholder="Menşe Ülke (Örn: Çin)"></div>
+                    <button onclick="freeAnaliz()" id="freeBtn" class="btn btn-outline-info w-100 p-3 fw-bold mb-3">ANINDA SORGULA</button>
+                    
+                    <div id="freeSonuc" class="mt-3 hidden p-3 rounded bg-dark border border-secondary">
+                        <div id="freeRapor" class="small marketing-text text-white"></div>
+                        <div class="mt-3 text-center border-top border-secondary pt-2 text-white">
+                            <span class="small text-warning"><i class="fa-solid fa-lock me-1"></i> Detaylı Rapor Kilitli</span><br>
+                            <button onclick="window.scrollTo(0,0)" class="btn btn-link btn-sm text-info-bright p-0 mt-1">Görmek için üye ol</button>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-md-5">
-                <div class="glass-card text-center h-100">
-                    <i class="fa-solid fa-user-shield feature-icon"></i>
-                    <h4 class="fw-bold">Müşavir Girişi</h4>
+                <div class="glass-card auth-card">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-user-shield feature-icon"></i>
+                        <h4 class="fw-bold">Müşavir Girişi</h4>
+                        <p class="small marketing-text">Tam erişim ve geçmiş takibi için.</p>
+                    </div>
                     <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
                     <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
-                    <button onclick="handleLogin()" id="loginBtn" class="btn btn-premium w-100 mb-3">GİRİŞ YAP</button>
-                    <button onclick="handleSignUp()" class="btn btn-outline-secondary w-100 btn-sm">Kayıt Ol</button>
+                    <button onclick="handleLogin()" id="loginBtn" class="btn btn-premium w-100 mb-3">SİSTEME GİRİŞ YAP</button>
+                    <button onclick="handleSignUp()" class="btn btn-outline-secondary w-100 btn-sm">Hesap Oluştur</button>
                 </div>
             </div>
         </div>
 
         <div class="row text-center mt-5 pt-5">
             <div class="col-md-4 mb-4">
-                <i class="fa-solid fa-bolt-lightning feature-icon fa-2x"></i>
-                <h6>2.5 Flash Motoru</h6>
-                <p class="small marketing-text px-4">En yüksek işlem hızı ve görsel analiz derinliği.</p>
+                <i class="fa-solid fa-file-contract text-info-bright mb-3 fa-2x"></i>
+                <h6>Güncel Mevzuat</h6>
+                <p class="small marketing-text px-4">Gemini 2.5 Flash ile 2026 güncel verilerine erişin.</p>
             </div>
             <div class="col-md-4 mb-4">
-                <i class="fa-solid fa-camera-viewfinder feature-icon fa-2x"></i>
-                <h6>Vision AI 2.0</h6>
-                <p class="small marketing-text px-4">Görsel verileri mevzuat verileriyle anında eşleştirin.</p>
+                <i class="fa-solid fa-magnifying-glass-chart text-info-bright mb-3 fa-2x"></i>
+                <h6>GTİP Tahmini</h6>
+                <p class="small marketing-text px-4">Yapay zeka ile en uygun tarife pozisyonunu bulun.</p>
             </div>
             <div class="col-md-4 mb-4">
-                <i class="fa-solid fa-database feature-icon fa-2x"></i>
-                <h6>Kesintisiz Veri</h6>
-                <p class="small marketing-text px-4">Tüm operasyon geçmişiniz tek panelde.</p>
+                <i class="fa-solid fa-clock-rotate-left text-info-bright mb-3 fa-2x"></i>
+                <h6>Analiz Arşivi</h6>
+                <p class="small marketing-text px-4">Yaptığınız tüm sorgulamaları panelden yönetin.</p>
             </div>
         </div>
     </div>
 
-    <div id="appSection" class="glass-card hidden" style="max-width: 950px; margin: auto;">
-        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 border-secondary">
-            <h4 class="m-0 fw-bold text-info-bright"><i class="fa-solid fa-microchip me-2"></i>2.5 Flash Paneli</h4>
-            <div class="d-flex align-items-center">
-                <button onclick="toggleTheme()" class="btn btn-outline-info btn-sm me-2"><i id="themeIcon" class="fa-solid fa-sun"></i></button>
-                <div class="me-3 small text-info-bright d-none d-md-block" id="userMail"></div>
+    <div id="appSection" class="glass-card app-card hidden">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+            <h4 class="m-0 text-info-bright fw-bold"><i class="fa-solid fa-gauge-high me-2"></i>Müşavir Kontrol Paneli</h4>
+            <div class="text-end d-flex align-items-center">
+                <button onclick="toggleTheme()" class="btn btn-outline-info btn-sm me-2">
+                    <i id="themeIcon" class="fa-solid fa-sun"></i>
+                </button>
+                <div class="me-3">
+                    <small id="userMail" class="d-block text-info-bright mb-0 small"></small>
+                </div>
                 <button onclick="handleLogout()" class="btn btn-danger btn-sm">Çıkış</button>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-md-6"><div class="input-box"><small class="text-info d-block mb-1">ÜRÜN TANIMI</small><input type="text" id="urun" placeholder="Ürün adı veya kodu"></div></div>
-            <div class="col-md-6"><div class="input-box"><small class="text-info d-block mb-1">MENŞE ÜLKE</small><input type="text" id="ulke" placeholder="İthalat/İhracat Ülkesi"></div></div>
+        <div class="row mt-4">
+            <div class="col-md-6"><div class="input-box"><small class="text-info-bright d-block mb-1">ÜRÜN ADI</small><input type="text" id="urun" placeholder="Örn: CNC Tezgahı"></div></div>
+            <div class="col-md-6"><div class="input-box"><small class="text-info-bright d-block mb-1">MENŞE ÜLKE</small><input type="text" id="ulke" placeholder="Örn: Almanya"></div></div>
         </div>
-
-        <div class="input-box text-center p-3" style="border: 2px dashed #475569; cursor: pointer;" onclick="document.getElementById('fotoInput').click()">
-            <i class="fa-solid fa-camera-retro mb-2 text-info"></i>
-            <p class="small m-0">Görsel Yükle (2.5 Flash Vision)</p>
-            <input type="file" id="fotoInput" class="hidden" accept="image/*" onchange="previewFile()">
-            <img id="preview" class="preview-img">
-        </div>
-
-        <button onclick="analizEt()" id="analizBtn" class="btn btn-premium w-100 mt-2">2.5 FLASH ANALİZİ ÇALIŞTIR</button>
-
-        <div id="sonuc" class="mt-4" style="display:none;">
-            <h5 class="text-info-bright mb-3"><i class="fa-solid fa-clipboard-list me-2"></i> Akıllı Gümrük Raporu</h5>
+        <button onclick="analizVeKaydet()" id="analizBtn" class="btn btn-premium w-100 mt-2">TAM ANALİZ RAPORU OLUŞTUR</button>
+        <div id="sonuc">
+            <h5 class="text-info-bright mb-3"><i class="fa-solid fa-file-shield me-2"></i> Profesyonel Analiz Raporu</h5>
             <div id="raporIcerik" class="marketing-text"></div>
         </div>
-
         <div id="gecmisBox" class="mt-5">
-            <h5 class="text-info-bright mb-3 border-bottom border-secondary pb-2">Analiz Arşivi</h5>
+            <h5 class="text-info-bright mb-3 border-bottom border-secondary pb-2">Önceki Aramalarım</h5>
             <div id="gecmisListesi" class="row"></div>
         </div>
     </div>
 
-    <footer class="text-center mt-5 pb-5">
-        <p class="small marketing-text opacity-50">© 2026 CustomsAI Pro. Gemini 2.5 Flash Entegrasyonu.</p>
+    <footer class="text-center mt-5 pb-5 pt-4">
+        <p class="small marketing-text opacity-50">© 2026 CustomsAI Pro. Gümrüklemede Dijital Dönüşüm.</p>
         <div class="d-flex justify-content-center gap-3">
             <a href="#" class="small text-info-bright text-decoration-none">Hakkımızda</a>
             <a href="mailto:destek@gumrukasistani.com" class="small text-info-bright text-decoration-none">Destek</a>
@@ -127,46 +148,50 @@
     const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const geminiKey = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
-    const CURRENT_MODEL = "gemini-2.5-flash"; // İSTEĞİN ÜZERİNE GÜNCELLENDİ
 
+    // TEMA DEĞİŞTİRME
     function toggleTheme() {
-        document.body.classList.toggle('light-mode');
+        const body = document.body;
         const icon = document.getElementById('themeIcon');
-        icon.classList.toggle('fa-sun'); icon.classList.toggle('fa-moon');
+        body.classList.toggle('light-mode');
+        icon.classList.toggle('fa-sun');
+        icon.classList.toggle('fa-moon');
     }
 
-    function previewFile() {
-        const preview = document.getElementById('preview');
-        const file = document.getElementById('fotoInput').files[0];
-        const reader = new FileReader();
-        reader.onloadend = () => { preview.src = reader.result; preview.style.display = 'block'; }
-        if (file) reader.readAsDataURL(file);
-    }
+    // EVRAK LİSTESİ OLUŞTURMA
+    function evrakListesiOlustur(raporMetni) {
+        const evraklar = ["Ticari Fatura", "Çeki Listesi", "Taşıma Belgesi (Konşimento)"];
+        const upperRapor = raporMetni.toUpperCase();
+        if(upperRapor.includes("DAHİLDE İŞLEME")) evraklar.push("Dahilde İşleme İzin Belgesi");
+        if(upperRapor.includes("TSE") || upperRapor.includes("UYGUNLUK")) evraklar.push("TSE Uygunluk Belgesi");
+        if(upperRapor.includes("ATR") || upperRapor.includes("A.TR")) evraklar.push("A.TR Dolaşım Belgesi");
+        if(upperRapor.includes("EUR")) evraklar.push("EUR.1 Belgesi");
+        if(upperRapor.includes("GÖZETİM")) evraklar.push("Gözetim Belgesi");
 
-    function evrakListesiOlustur(text) {
-        const evraklar = ["Ticari Fatura", "Çeki Listesi"];
-        const t = text.toUpperCase();
-        if(t.includes("ATR") || t.includes("A.TR")) evraklar.push("A.TR Belgesi");
-        if(t.includes("TSE") || t.includes("UYGUNLUK")) evraklar.push("TSE Uygunluk Yazısı");
-        if(t.includes("EUR")) evraklar.push("EUR.1 Belgesi");
-        let html = `<div class="evrak-box"><h6><i class="fa-solid fa-list-check me-2 text-info"></i>Önerilen Evraklar</h6>`;
-        evraklar.forEach(e => html += `<div class="small mb-1"><i class="fa-regular fa-square-check text-info"></i> ${e}</div>`);
-        return html + `</div>`;
-    }
-
-    async function handleLogin() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const { error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert("Giriş Hatalı!"); else checkUser();
+        let html = `<div class="evrak-box"><h6><i class="fa-solid fa-clipboard-check me-2 text-info"></i>Gerekli Evrak Kontrol Listesi</h6>`;
+        evraklar.forEach(e => {
+            html += `<div class="evrak-item"><i class="fa-regular fa-square-check text-info"></i> ${e}</div>`;
+        });
+        html += `</div>`;
+        return html;
     }
 
     async function handleSignUp() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        await _supabase.auth.signUp({ email, password });
-        alert("Üyelik oluşturuldu!");
+        const { error } = await _supabase.auth.signUp({ email, password });
+        if (error) alert("Hata: " + error.message);
+        else alert("Hesap oluşturuldu! Şimdi giriş yapabilirsiniz.");
+    }
+
+    async function handleLogin() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+        btn.innerText = "BAĞLANILIYOR...";
+        const { error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) { alert("Hata: " + error.message); btn.innerText = "SİSTEME GİRİŞ YAP"; }
+        else { checkUser(); }
     }
 
     async function handleLogout() { await _supabase.auth.signOut(); location.reload(); }
@@ -182,53 +207,51 @@
     }
 
     async function freeAnaliz() {
+        const geminiKey = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
         const urun = document.getElementById('freeUrun').value;
         const ulke = document.getElementById('freeUlke').value;
-        if(!urun) return alert("Ürün girin.");
-        document.getElementById('freeBtn').innerText = "...";
+        const btn = document.getElementById('freeBtn');
+        const resDiv = document.getElementById('freeSonuc');
+        if(!urun || !ulke) return alert("Ürün ve ülke bilgilerini girin.");
+        btn.innerText = "SORGULANIYOR..."; btn.disabled = true;
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CURRENT_MODEL}:generateContent?key=${geminiKey}`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ contents: [{ parts: [{ text: `${ulke} menşeli ${urun} gümrük GTİP özeti ver.` }] }] })
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri olarak ${ulke} menşeli ${urun} için SADECE GTİP kodu ve Gümrük Vergisi oranı hakkında kısa bir madde listesi söyle. Detay verme.` }] }] })
             });
             const data = await res.json();
-            document.getElementById('freeRapor').innerText = data.candidates[0].content.parts[0].text;
-            document.getElementById('freeSonuc').classList.remove('hidden');
-        } catch(e) { alert("Sistem yoğun."); }
-        finally { document.getElementById('freeBtn').innerText = "2.5 FLASH SORGULA"; }
+            const rapor = data.candidates[0].content.parts[0].text;
+            document.getElementById('freeRapor').innerHTML = "<b>Ön Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
+            resDiv.classList.remove('hidden');
+        } catch (e) { alert("Sorgu limiti doldu."); }
+        finally { btn.innerText = "ANINDA SORGULA"; btn.disabled = false; }
     }
 
-    async function analizEt() {
+    async function analizVeKaydet() {
+        const geminiKey = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
         const urun = document.getElementById('urun').value;
         const ulke = document.getElementById('ulke').value;
-        const file = document.getElementById('fotoInput').files[0];
         const btn = document.getElementById('analizBtn');
-        if(!ulke) return alert("Ülke girmelisiniz.");
-        btn.disabled = true; btn.innerText = "2.5 FLASH ANALİZ EDİYOR...";
+        if(!urun || !ulke) return alert("Bilgileri girin.");
+        btn.disabled = true; btn.innerText = "ANALİZ YAPILIYOR...";
         try {
-            let bodyData;
-            let prompt = `Gümrük müşaviri olarak ${ulke} menşeli ${urun || "bu fotoğraftaki"} ürünü analiz et. GTİP, vergi oranları ve belgeleri belirt.`;
-            if (file) {
-                const base64 = document.getElementById('preview').src.split(',')[1];
-                bodyData = { contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: file.type, data: base64 } }] }] };
-            } else {
-                bodyData = { contents: [{ parts: [{ text: prompt }] }] };
-            }
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CURRENT_MODEL}:generateContent?key=${geminiKey}`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(bodyData)
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri olarak ${ulke} menşeli ${urun} için GTİP, Gümrük Vergisi, KDV, ÖTV, Ek Mali Yükümlülükler ve gerekli gümrük belgeleri (ATR, TSE vb.) dahil profesyonel analiz yap.` }] }] })
             });
             const data = await res.json();
             const rapor = data.candidates[0].content.parts[0].text;
             const { data: { user } } = await _supabase.auth.getUser();
-            await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun: urun || "Görsel Analiz", ulke, rapor }]);
-            let html = rapor.replace(/\*\*(.*?)\*\*/g, '<b class="text-info-bright">$1</b>').replace(/\n/g, "<br>");
-            html += evrakListesiOlustur(rapor);
-            document.getElementById('raporIcerik').innerHTML = html;
+            await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
+            
+            let raporHtml = rapor.replace(/\*\*(.*?)\*\*/g, '<b class="text-info-bright">$1</b>').replace(/\n/g, "<br>");
+            raporHtml += evrakListesiOlustur(rapor);
+            
+            document.getElementById('raporIcerik').innerHTML = raporHtml;
             document.getElementById('sonuc').style.display = 'block';
             gecmisiYukle();
-        } catch (e) { alert("2.5 Flash erişim hatası!"); }
-        finally { btn.disabled = false; btn.innerText = "2.5 FLASH ANALİZİ ÇALIŞTIR"; }
+        } catch (e) { alert("Hata oluştu."); }
+        finally { btn.disabled = false; btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR"; }
     }
 
     async function gecmisiYukle() {
@@ -239,7 +262,7 @@
             data.forEach(item => {
                 html += `<div class="col-md-4"><div class="history-item"><small class="text-info-bright">${new Date(item.created_at).toLocaleDateString()}</small><h6 class="mb-1">${item.urun}</h6><p class="small m-0 opacity-75">${item.ulke}</p></div></div>`;
             });
-            document.getElementById('gecmisListesi').innerHTML = html || '<p class="opacity-50">Kayıt bulunamadı.</p>';
+            document.getElementById('gecmisListesi').innerHTML = html || '<p class="opacity-50">Henüz bir analiziniz bulunmuyor.</p>';
         }
     }
     window.onload = checkUser;
