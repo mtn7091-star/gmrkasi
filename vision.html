@@ -2,84 +2,67 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI | Vision Lab (Garantili Mod)</title>
+    <title>CustomsAI | Vision Lab (Orijinal Kod)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #00f2fe; --dark: #0b1120; }
-        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; padding: 40px 0; }
-        .glass-card { background: rgba(30, 41, 59, 0.9); border-radius: 20px; padding: 30px; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .preview-area { border: 2px dashed #475569; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 20px; }
-        #previewImg { max-width: 100%; max-height: 300px; display: none; margin: 10px auto; border-radius: 10px; border: 2px solid var(--primary); }
-        .btn-analiz { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: bold; width: 100%; padding: 15px; border-radius: 10px; transition: 0.3s; }
-        .btn-analiz:hover { opacity: 0.8; transform: translateY(-2px); }
-        #sonuc { display: none; margin-top: 25px; padding: 20px; background: rgba(0,0,0,0.4); border-radius: 15px; border-left: 5px solid var(--primary); }
+        body { background: #0b1120; color: white; padding: 40px; font-family: 'Inter', sans-serif; }
+        .card { background: #1e293b; border-radius: 20px; padding: 30px; border: 1px solid #4facfe; max-width: 600px; margin: auto; }
+        #preview { max-width: 100%; border-radius: 10px; margin: 20px 0; display: none; border: 2px solid #00f2fe; }
+        .btn-analiz { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: bold; width: 100%; padding: 15px; border-radius: 10px; }
+        #rapor { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; display: none; font-size: 14px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-<div class="container" style="max-width: 650px;">
-    <div class="glass-card shadow-lg">
-        <h3 class="text-center mb-4">Vision <span style="color:var(--primary)">Lab</span></h3>
-        
-        <div class="preview-area" onclick="document.getElementById('fileInput').click()">
-            <div id="promptText">📸 Fotoğraf Seç veya Çek</div>
-            <img id="previewImg">
-            <input type="file" id="fileInput" hidden accept="image/*" onchange="previewFile(this)">
-        </div>
+<div class="card shadow-lg text-center">
+    <h3 style="color:#00f2fe">Vision Lab</h3>
+    <p class="small opacity-75">Orijinal Çalışan Sürüm</p>
+    
+    <input type="file" id="fileInput" class="form-control my-3" accept="image/*" onchange="showPreview(this)">
+    <img id="preview">
+    
+    <input type="text" id="ulke" class="form-control mb-3" placeholder="Menşe Ülke (Örn: Çin)">
+    
+    <button id="btn" onclick="visionAnaliz()" class="btn-analiz">ANALİZİ BAŞLAT</button>
 
-        <input type="text" id="ulke" class="form-control mb-3" placeholder="Menşe Ülke (Örn: Çin)" style="background: #1e293b; color: white; border: 1px solid #475569;">
-        
-        <button id="btn" onclick="visionAnaliz()" class="btn-analiz">ANALİZİ BAŞLAT</button>
-
-        <div id="sonuc">
-            <h6 style="color:var(--primary)">Analiz Sonucu:</h6>
-            <div id="rapor" style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1; white-space: pre-wrap;"></div>
-        </div>
-    </div>
+    <div id="rapor"></div>
 </div>
 
 <script>
-    // Senden aldığım taze API Key
+    // Yeni taze anahtarın
     const API_KEY = "AIzaSyAXbBgWbTAu3VXGXWYzFlJYg36uDo-lmY4"; 
-    // O gün çalışan model ismi
-    const MODEL_NAME = "gemini-1.5-flash"; 
 
-    function previewFile(input) {
-        const file = input.files[0];
-        if (file) {
+    function showPreview(input) {
+        if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const img = document.getElementById('previewImg');
+                const img = document.getElementById('preview');
                 img.src = e.target.result;
                 img.style.display = 'block';
-                document.getElementById('promptText').style.display = 'none';
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
     async function visionAnaliz() {
-        const fileInput = document.getElementById('fileInput');
+        const file = document.getElementById('fileInput').files[0];
         const ulke = document.getElementById('ulke').value;
         const btn = document.getElementById('btn');
-        const rapor = document.getElementById('rapor');
-        const sonucDiv = document.getElementById('sonuc');
-        const file = fileInput.files[0];
+        const raporDiv = document.getElementById('rapor');
 
-        if (!file || !ulke) return alert("Eksik bilgi!");
+        if (!file || !ulke) return alert("Dosya ve ülke seçmelisin hacı!");
 
         btn.disabled = true;
-        btn.innerText = "Gümrük İncelemesi Yapılıyor...";
+        btn.innerText = "İnceleniyor...";
 
         try {
-            // Görseli Base64'e çevirip sadece veri kısmını alıyoruz
-            const base64Data = document.getElementById('previewImg').src.split(',')[1];
+            const base64Data = document.getElementById('preview').src.split(',')[1];
             
+            // O GÜNKÜ ÇALIŞAN PAYLOAD YAPISI
             const payload = {
                 "contents": [{
                     "parts": [
-                        { "text": `Sen uzman bir gümrük müşavirisin. Bu fotoğrafı analiz et. Ürün ${ulke} menşeli. GTİP kodu tahminini ve vergi bilgilerini yaz.` },
+                        { "text": `Sen uzman bir gümrük müşavirisin. Bu fotoğrafı analiz et. Ürün ${ulke} menşeli. GTİP kodu tahmini yap ve vergi bilgilerini ver.` },
                         {
                             "inline_data": {
                                 "mime_type": file.type,
@@ -90,34 +73,27 @@
                 }]
             };
 
-            // O gün çalışan URL: v1beta + models/ + generateContent
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+            // O GÜNKÜ ÇALIŞAN URL
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-            const response = await fetch(url, {
+            const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
+            const data = await res.json();
 
             if (data.error) {
-                console.error("Hata Detayı:", data.error);
-                alert("Hata Mesajı: " + data.error.message);
-                return;
+                raporDiv.innerHTML = `<span style="color:red">Hata: ${data.error.message}</span>`;
+            } else {
+                const resultText = data.candidates[0].content.parts[0].text;
+                raporDiv.innerHTML = resultText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             }
+            raporDiv.style.display = 'block';
 
-            if (data.candidates && data.candidates[0].content) {
-                const text = data.candidates[0].content.parts[0].text;
-                // Markdown yıldızlarını bold yapalım
-                rapor.innerHTML = text
-                    .replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--primary)">$1</b>')
-                    .replace(/\n/g, '<br>');
-                sonucDiv.style.display = 'block';
-            }
-
-        } catch (error) {
-            alert("Sistem hatası! Lütfen internetinizi kontrol edin.");
+        } catch (e) {
+            alert("Bağlantı koptu, tekrar dene!");
         } finally {
             btn.disabled = false;
             btn.innerText = "ANALİZİ BAŞLAT";
