@@ -103,120 +103,104 @@
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const API_KEY = "AIzaSyAXbBgWbTAu3VXGXWYzFlJYg36uDo-lmY4"; 
 
-    function toggleTheme() {
-        document.body.classList.toggle('light-mode');
-        const icon = document.getElementById('themeIcon');
-        icon.classList.toggle('fa-sun'); icon.classList.toggle('fa-moon');
+    // FOTOĞRAFI OTOMATİK KÜÇÜLTEN SİHİRLİ FONKSİYON
+    async function resizeImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // İdeal genişlik
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // Kaliteyi %70'e düşürerek boyutu iyice optimize ediyoruz
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            };
+        });
     }
 
-    function previewFile() {
-        const preview = document.getElementById('preview');
-        const file = document.getElementById('fotoInput').files[0];
-        const reader = new FileReader();
-        reader.onloadend = () => { preview.src = reader.result; preview.style.display = 'block'; }
-        if (file) reader.readAsDataURL(file);
-    }
-
-    // EVRAK LİSTESİ SİHRİ
-    function evrakListesiOlustur(text) {
-        const evraklar = ["Ticari Fatura", "Çeki Listesi"];
-        const t = text.toUpperCase();
-        if(t.includes("ATR") || t.includes("A.TR")) evraklar.push("A.TR Belgesi");
-        if(t.includes("TSE") || t.includes("UYGUNLUK")) evraklar.push("TSE Uygunluk Yazısı");
-        if(t.includes("EUR")) evraklar.push("EUR.1 Sertifikası");
-        if(t.includes("GÖZETİM")) evraklar.push("Gözetim Belgesi");
-        
-        let html = `<div class="evrak-box"><h6><i class="fa-solid fa-list-check me-2"></i>Gerekli Evraklar</h6>`;
-        evraklar.forEach(e => html += `<div class="small mb-1"><i class="fa-regular fa-check-square text-info"></i> ${e}</div>`);
-        return html + `</div>`;
-    }
-
-    async function handleLogin() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const { error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert("Giriş Hatalı!"); else checkUser();
-    }
-
-    async function handleSignUp() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        await _supabase.auth.signUp({ email, password });
-        alert("Kayıt Başarılı!");
-    }
-
-    async function handleLogout() { await _supabase.auth.signOut(); location.reload(); }
-
-    async function checkUser() {
-        const { data: { user } } = await _supabase.auth.getUser();
-        if (user) {
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('appSection').classList.remove('hidden');
-            document.getElementById('userMail').innerText = user.email;
+    function showPreview(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
-    async function freeAnaliz() {
-        const key = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
-        const urun = document.getElementById('freeUrun').value;
-        const ulke = document.getElementById('freeUlke').value;
-        if(!urun) return alert("Ürün gir bro!");
-        document.getElementById('freeBtn').innerText = "...";
-        try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ contents: [{ parts: [{ text: `${ulke} menşeli ${urun} için kısa GTİP ve vergi özeti ver.` }] }] })
-            });
-            const data = await res.json();
-            document.getElementById('freeRapor').innerText = data.candidates[0].content.parts[0].text;
-            document.getElementById('freeSonuc').classList.remove('hidden');
-        } catch(e) { alert("Hata!"); }
-        finally { document.getElementById('freeBtn').innerText = "ANINDA SORGULA"; }
-    }
-
-    async function analizEt() {
-        const key = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
-        const urun = document.getElementById('urun').value;
+    async function visionAnaliz() {
+        const file = document.getElementById('fileInput').files[0];
         const ulke = document.getElementById('ulke').value;
-        const file = document.getElementById('fotoInput').files[0];
-        const btn = document.getElementById('analizBtn');
+        const btn = document.getElementById('btn');
+        const raporDiv = document.getElementById('rapor');
 
-        if(!ulke) return alert("Ülke seçmelisin.");
-        btn.disabled = true; btn.innerText = "YAPAY ZEKA ÇALIŞIYOR...";
+        if (!file || !ulke) return alert("Dosya ve ülke seçmelisin hacı!");
 
-        let prompt = `Sen profesyonel gümrük müşavirisin. ${ulke} menşeli bu ürünü analiz et. GTİP, vergi oranları ve belgeleri belirt.`;
-        if(urun) prompt += ` Ürün: ${urun}`;
+        btn.disabled = true;
+        btn.innerText = "Görsel Optimize Ediliyor...";
 
         try {
-            let bodyData;
-            if (file) {
-                const base64 = document.getElementById('preview').src.split(',')[1];
-                bodyData = { contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: file.type, data: base64 } }] }] };
-            } else {
-                bodyData = { contents: [{ parts: [{ text: prompt }] }] };
-            }
-
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(bodyData)
-            });
-            const data = await res.json();
-            const rapor = data.candidates[0].content.parts[0].text;
+            // Görseli burada küçültüyoruz
+            const resizedBase64 = await resizeImage(file);
+            const base64Data = resizedBase64.split(',')[1];
             
-            let html = rapor.replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--primary)">$1</b>').replace(/\n/g, "<br>");
-            html += evrakListesiOlustur(rapor);
+            btn.innerText = "Gümrük İncelemesi Yapılıyor...";
 
-            document.getElementById('raporIcerik').innerHTML = html;
-            document.getElementById('sonuc').style.display = 'block';
-        } catch (e) { alert("Hata! Fotoğraf boyutu büyük olabilir."); }
-        finally { btn.disabled = false; btn.innerText = "ANALİZİ BAŞLAT"; }
+            const payload = {
+                "contents": [{
+                    "parts": [
+                        { "text": `Sen uzman bir gümrük müşavirisin. Bu fotoğrafı analiz et. Ürün ${ulke} menşeli. GTİP kodu tahmini yap ve vergi bilgilerini ver.` },
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": base64Data
+                            }
+                        }
+                    ]
+                }]
+            };
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                raporDiv.innerHTML = `<span style="color:red">Hata: ${data.error.message}</span>`;
+            } else {
+                const resultText = data.candidates[0].content.parts[0].text;
+                raporDiv.innerHTML = resultText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            }
+            raporDiv.style.display = 'block';
+
+        } catch (e) {
+            alert("Boyut küçültme veya bağlantı hatası!");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "ANALİZİ BAŞLAT";
+        }
     }
-
-    window.onload = checkUser;
 </script>
-</body>
-</html>
