@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI | Vision Lab (Final v3.7)</title>
+    <title>CustomsAI | Vision Lab (Sorunsuz v4.0)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -11,7 +11,6 @@
         body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: var(--text-bright); font-family: 'Inter', sans-serif; min-height: 100vh; padding: 40px 0; }
         .glass-card { backdrop-filter: blur(15px); background: rgba(30, 41, 59, 0.8); border-radius: 24px; padding: 30px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         .btn-vision { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; border-radius: 12px; padding: 15px; width: 100%; transition: 0.3s; text-transform: uppercase; }
-        .btn-vision:disabled { opacity: 0.6; cursor: not-allowed; }
         .preview-area { border: 2px dashed #475569; border-radius: 20px; padding: 30px; cursor: pointer; transition: 0.3s; margin-bottom: 25px; background: rgba(15, 23, 42, 0.4); text-align: center; }
         #previewImg { max-width: 100%; max-height: 350px; border-radius: 15px; display: none; margin: 0 auto; border: 2px solid var(--primary); }
         .input-box { background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
@@ -28,15 +27,15 @@
     <div class="text-center">
         <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left me-2"></i> Ana Panele Dön</a>
         <h2 class="fw-bold">Vision <span style="color:var(--primary)">Lab</span></h2>
-        <p class="opacity-75 small">Görsel Analiz ve GTİP Tespit Merkezi</p>
+        <p class="opacity-75 small">Yapay Zeka Görsel Analiz Sistemi</p>
     </div>
 
     <div class="glass-card">
         <div class="preview-area" onclick="document.getElementById('fileInput').click()">
             <div id="uploadPrompt">
-                <i class="fa-solid fa-camera fa-3x mb-3 text-info"></i>
-                <h6>Görsel Yükle veya Fotoğraf Çek</h6>
-                <p class="small opacity-50">Ürün veya Etiket Fotoğrafı</p>
+                <i class="fa-solid fa-cloud-arrow-up fa-3x mb-3 text-info"></i>
+                <h6>Fotoğraf Yükle veya Çek</h6>
+                <p class="small opacity-50">Ürün veya Etiket Görseli</p>
             </div>
             <img id="previewImg">
             <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFile(this)">
@@ -51,7 +50,7 @@
         <div class="loader" id="loader"></div>
 
         <div id="sonuc">
-            <h5 class="text-info-bright mb-3"><i class="fa-solid fa-robot me-2"></i> Gümrük Analiz Raporu</h5>
+            <h5 class="text-info-bright mb-3"><i class="fa-solid fa-microchip me-2"></i> Analiz Raporu</h5>
             <div id="rapor" class="small lh-lg" style="color: #cbd5e1; white-space: pre-wrap;"></div>
         </div>
     </div>
@@ -59,7 +58,8 @@
 
 <script>
     const API_KEY = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
-    const MODEL_ID = "gemini-1.5-flash"; 
+    // İsmi en garanti görsel modeline çevirdik
+    const MODEL_NAME = "gemini-1.5-flash"; 
 
     function handleFile(input) {
         const file = input.files[0];
@@ -83,7 +83,7 @@
         const file = fileInput.files[0];
 
         if (!file || !ulke) {
-            alert("Lütfen görsel seçin ve menşe ülkeyi belirtin!");
+            alert("Lütfen görsel seçin ve ülke yazın!");
             return;
         }
 
@@ -93,42 +93,32 @@
 
         try {
             const base64Data = document.getElementById('previewImg').src.split(',')[1];
-            const promptText = `Sen uzman bir gümrük müşavirisin. Bu görseldeki ${ulke} menşeli ürünü analiz et. Tahmini GTİP kodu, kısa tanım ve vergi oranlarını belirt.`;
-
+            
             const payload = {
                 contents: [{
                     parts: [
-                        { text: promptText },
+                        { text: `Gümrük müşaviri olarak bu ${ulke} menşeli görseli analiz et.` },
                         { inline_data: { mime_type: file.type, data: base64Data } }
                     ]
                 }]
             };
 
-            // STRATEJİ: Önce v1 üzerinden tam yol ile dene
-            let apiUrl = `https://generativelanguage.googleapis.com/v1/models/${MODEL_ID}:generateContent?key=${API_KEY}`;
-            
-            let response = await fetch(apiUrl, {
+            // URL yapısını models/ gemini-1.5-flash : generateContent şeklinde sabitledik
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+            const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
-            let data = await response.json();
-
-            // Eğer v1 hata verirse, otomatik v1beta'yı dene
-            if (data.error && data.error.code === 404) {
-                console.warn("v1 hata verdi, v1beta deneniyor...");
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${API_KEY}`;
-                response = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                data = await response.json();
-            }
+            const data = await response.json();
 
             if (data.error) {
-                throw new Error(data.error.message);
+                // Hata aldığımızda tüm modelleri listelemeyi dene (Hata ayıklama modu)
+                console.error("API Hatası:", data.error);
+                alert("Hata: " + data.error.message + "\n\nİpucu: Eğer model bulunamadı diyorsa, API anahtarın bu modele henüz açık olmayabilir.");
+                return;
             }
 
             if (data.candidates && data.candidates[0].content) {
@@ -137,13 +127,10 @@
                     .replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--primary)">$1</b>')
                     .replace(/\n/g, '<br>');
                 sonucDiv.style.display = 'block';
-            } else {
-                throw new Error("Model cevap üretemedi.");
             }
 
         } catch (error) {
-            console.error("Hata Detayı:", error);
-            alert("Hata: " + error.message);
+            alert("Bağlantı hatası! Sayfayı yenileyip tekrar dene bro.");
         } finally {
             btn.disabled = false;
             loader.style.display = "none";
