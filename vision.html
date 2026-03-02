@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI | Vision Lab (Legacy Mode)</title>
+    <title>CustomsAI | Vision Lab (Garantili Mod)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --primary: #00f2fe; --dark: #0b1120; }
         body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; padding: 40px 0; }
         .glass-card { background: rgba(30, 41, 59, 0.9); border-radius: 20px; padding: 30px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .preview-area { border: 2px dashed #475569; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 20px; }
-        #previewImg { max-width: 100%; max-height: 300px; display: none; margin: 10px auto; border-radius: 10px; }
-        .btn-analiz { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: bold; width: 100%; padding: 15px; border-radius: 10px; }
+        #previewImg { max-width: 100%; max-height: 300px; display: none; margin: 10px auto; border-radius: 10px; border: 2px solid var(--primary); }
+        .btn-analiz { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: bold; width: 100%; padding: 15px; border-radius: 10px; transition: 0.3s; }
+        .btn-analiz:hover { opacity: 0.8; transform: translateY(-2px); }
         #sonuc { display: none; margin-top: 25px; padding: 20px; background: rgba(0,0,0,0.4); border-radius: 15px; border-left: 5px solid var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="container" style="max-width: 650px;">
-    <div class="glass-card">
+    <div class="glass-card shadow-lg">
         <h3 class="text-center mb-4">Vision <span style="color:var(--primary)">Lab</span></h3>
         
         <div class="preview-area" onclick="document.getElementById('fileInput').click()">
@@ -33,24 +34,25 @@
 
         <div id="sonuc">
             <h6 style="color:var(--primary)">Analiz Sonucu:</h6>
-            <div id="rapor" style="font-size: 0.9rem; line-height: 1.6;"></div>
+            <div id="rapor" style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1; white-space: pre-wrap;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // Yeni Key burada kalsın
+    // Senden aldığım taze API Key
     const API_KEY = "AIzaSyAXbBgWbTAu3VXGXWYzFlJYg36uDo-lmY4"; 
-    // Naz yapmayan, görsel için en garanti model ismi
-    const MODEL_NAME = "gemini-pro-vision"; 
+    // O gün çalışan model ismi
+    const MODEL_NAME = "gemini-1.5-flash"; 
 
     function previewFile(input) {
         const file = input.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                document.getElementById('previewImg').src = e.target.result;
-                document.getElementById('previewImg').style.display = 'block';
+                const img = document.getElementById('previewImg');
+                img.src = e.target.result;
+                img.style.display = 'block';
                 document.getElementById('promptText').style.display = 'none';
             };
             reader.readAsDataURL(file);
@@ -58,31 +60,38 @@
     }
 
     async function visionAnaliz() {
-        const file = document.getElementById('fileInput').files[0];
+        const fileInput = document.getElementById('fileInput');
         const ulke = document.getElementById('ulke').value;
         const btn = document.getElementById('btn');
         const rapor = document.getElementById('rapor');
         const sonucDiv = document.getElementById('sonuc');
+        const file = fileInput.files[0];
 
         if (!file || !ulke) return alert("Eksik bilgi!");
 
         btn.disabled = true;
-        btn.innerText = "İşleniyor...";
+        btn.innerText = "Gümrük İncelemesi Yapılıyor...";
 
         try {
+            // Görseli Base64'e çevirip sadece veri kısmını alıyoruz
             const base64Data = document.getElementById('previewImg').src.split(',')[1];
             
             const payload = {
-                contents: [{
-                    parts: [
-                        { text: `Gümrük uzmanı olarak bu ${ulke} menşeli ürünü incele. GTİP ve vergi tahmini yap.` },
-                        { inline_data: { mime_type: file.type, data: base64Data } }
+                "contents": [{
+                    "parts": [
+                        { "text": `Sen uzman bir gümrük müşavirisin. Bu fotoğrafı analiz et. Ürün ${ulke} menşeli. GTİP kodu tahminini ve vergi bilgilerini yaz.` },
+                        {
+                            "inline_data": {
+                                "mime_type": file.type,
+                                "data": base64Data
+                            }
+                        }
                     ]
                 }]
             };
 
-            // v1 ve gemini-pro-vision ikilisi en sağlam yoldur
-            const url = `https://generativelanguage.googleapis.com/v1/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+            // O gün çalışan URL: v1beta + models/ + generateContent
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
             const response = await fetch(url, {
                 method: "POST",
@@ -93,20 +102,22 @@
             const data = await response.json();
 
             if (data.error) {
-                // Eğer pro-vision da hata verirse, son çare 1.5-flash-latest dene
-                console.error("Hata:", data.error);
-                alert("Hata: " + data.error.message);
+                console.error("Hata Detayı:", data.error);
+                alert("Hata Mesajı: " + data.error.message);
                 return;
             }
 
-            if (data.candidates) {
+            if (data.candidates && data.candidates[0].content) {
                 const text = data.candidates[0].content.parts[0].text;
-                rapor.innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                // Markdown yıldızlarını bold yapalım
+                rapor.innerHTML = text
+                    .replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--primary)">$1</b>')
+                    .replace(/\n/g, '<br>');
                 sonucDiv.style.display = 'block';
             }
 
         } catch (error) {
-            alert("Sistem hatası!");
+            alert("Sistem hatası! Lütfen internetinizi kontrol edin.");
         } finally {
             btn.disabled = false;
             btn.innerText = "ANALİZİ BAŞLAT";
