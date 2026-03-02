@@ -3,65 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI Pro | Vision Fix</title>
+    <title>CustomsAI Pro | Final Vision Fix</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #00f2fe; --secondary: #4facfe; --dark: #0b1120; --text-bright: #f8fafc; }
-        body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: var(--text-bright); font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; padding-top: 50px; }
-        .glass-card { backdrop-filter: blur(15px); background: rgba(30, 41, 59, 0.8); border-radius: 24px; padding: 30px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
-        .input-box { background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; border-radius: 12px; padding: 12px; margin-bottom: 15px; }
+        :root { --primary: #00f2fe; --dark: #0b1120; }
+        body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: white; font-family: 'Inter', sans-serif; min-height: 100vh; padding-top: 50px; }
+        .glass-card { background: rgba(30, 41, 59, 0.8); border-radius: 20px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-box { background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; border-radius: 10px; padding: 10px; margin-bottom: 15px; }
         .input-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
-        .btn-premium { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; border-radius: 12px; padding: 15px; transition: 0.3s; text-transform: uppercase; }
-        #sonuc { background: rgba(15, 23, 42, 0.9); border-radius: 16px; padding: 25px; margin-top: 25px; border-left: 5px solid var(--primary); display: none; }
+        .btn-premium { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: bold; width: 100%; padding: 12px; border-radius: 10px; }
+        #sonuc { background: rgba(0,0,0,0.4); border-radius: 10px; padding: 20px; margin-top: 20px; border-left: 5px solid var(--primary); display: none; }
         .hidden { display: none !important; }
-        .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; margin: 15px auto; display: none; border: 2px solid var(--primary); object-fit: contain; }
+        .preview-img { max-width: 100%; max-height: 250px; display: none; margin: 10px auto; border-radius: 10px; border: 2px solid var(--primary); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="authSection">
-        <div class="text-center mb-5">
-            <h1 class="fw-bold">CustomsAI <span style="color:var(--primary)">Pro</span></h1>
-            <p class="opacity-75">Görsel Analiz Sistemi</p>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="glass-card text-center">
-                    <h4 class="fw-bold mb-4">Giriş Yap</h4>
-                    <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
-                    <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
-                    <button onclick="handleLogin()" class="btn btn-premium w-100 mb-3">GİRİŞ</button>
-                    <button onclick="handleSignUp()" class="btn btn-outline-secondary w-100 btn-sm">Kayıt Ol</button>
-                </div>
-            </div>
-        </div>
+<div class="container" style="max-width: 600px;">
+    <div id="authSection" class="glass-card text-center">
+        <h4>CustomsAI Giriş</h4>
+        <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
+        <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
+        <button onclick="handleLogin()" class="btn-premium">GİRİŞ YAP</button>
     </div>
 
-    <div id="appSection" class="glass-card hidden" style="max-width: 800px; margin: auto;">
-        <div class="d-flex justify-content-between mb-4 border-bottom pb-2">
-            <h4 class="fw-bold">AI Görsel Analiz</h4>
-            <button onclick="handleLogout()" class="btn btn-danger btn-sm">Çıkış</button>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6"><div class="input-box"><small class="text-info">ÜRÜN (OPSİYONEL)</small><input type="text" id="urun"></div></div>
-            <div class="col-md-6"><div class="input-box"><small class="text-info">ÜLKE</small><input type="text" id="ulke" placeholder="Menşe Ülke"></div></div>
-        </div>
-
-        <div class="input-box text-center p-4" style="border: 2px dashed #475569;" onclick="document.getElementById('fotoInput').click()">
-            <p class="small m-0">Tıkla ve Fotoğraf Yükle</p>
+    <div id="appSection" class="glass-card hidden">
+        <h4 class="text-center mb-3">Görsel Analiz</h4>
+        <input type="text" id="ulke" class="form-control mb-3" placeholder="Menşe Ülke" style="background:#1e293b; color:white; border:1px solid #475569;">
+        
+        <div class="input-box text-center" onclick="document.getElementById('fotoInput').click()" style="cursor:pointer; border: 2px dashed #4facfe;">
+            <p class="m-0 small">Fotoğraf Yükle</p>
             <input type="file" id="fotoInput" class="hidden" accept="image/*" onchange="previewFile()">
             <img id="preview" class="preview-img">
         </div>
 
-        <button onclick="analizEt()" id="analizBtn" class="btn btn-premium w-100 mt-3">ANALİZİ BAŞLAT</button>
+        <button onclick="analizEt()" id="btn" class="btn-premium mt-3">ANALİZİ BAŞLAT</button>
 
         <div id="sonuc">
-            <h5 style="color:var(--primary)">Analiz Raporu:</h5>
-            <div id="raporIcerik" class="small lh-lg mt-2"></div>
+            <h6 style="color:var(--primary)">AI Raporu:</h6>
+            <div id="rapor" class="small lh-lg"></div>
         </div>
     </div>
 </div>
@@ -71,32 +52,22 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // Taze Key (Az önce aldığımız)
+    // Taze Key
     const geminiKey = "AIzaSyAXbBgWbTAu3VXGXWYzFlJYg36uDo-lmY4"; 
 
-    // GÖRSELİ ÇOK DAHA KÜÇÜK VE HAFİF HALE GETİREN FONKSİYON
     async function resizeImage(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = (event) => {
+            reader.onload = (e) => {
                 const img = new Image();
-                img.src = event.target.result;
+                img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    // Genişliği 600px'e düşürdük (Hem net hem çok hafif)
-                    const SCALE_WIDTH = 600; 
-                    let width = img.width;
-                    let height = img.height;
-                    
-                    height *= SCALE_WIDTH / width;
-                    width = SCALE_WIDTH;
-
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = 600; 
+                    canvas.height = img.height * (600 / img.width);
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    // Kaliteyi %60'a çektik, Google bunu kesin kabul eder
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     resolve(canvas.toDataURL('image/jpeg', 0.6));
                 };
             };
@@ -104,11 +75,13 @@
     }
 
     function previewFile() {
-        const preview = document.getElementById('preview');
         const file = document.getElementById('fotoInput').files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => { preview.src = reader.result; preview.style.display = 'block'; }
+            reader.onloadend = () => { 
+                document.getElementById('preview').src = reader.result; 
+                document.getElementById('preview').style.display = 'block'; 
+            }
             reader.readAsDataURL(file);
         }
     }
@@ -118,18 +91,8 @@
             email: document.getElementById('email').value, 
             password: document.getElementById('password').value 
         });
-        if (error) alert("Hata!"); else checkUser();
+        if (error) alert("Giriş hatası!"); else checkUser();
     }
-
-    async function handleSignUp() {
-        await _supabase.auth.signUp({ 
-            email: document.getElementById('email').value, 
-            password: document.getElementById('password').value 
-        });
-        alert("Kayıt ok! Giriş yap.");
-    }
-
-    async function handleLogout() { await _supabase.auth.signOut(); location.reload(); }
 
     async function checkUser() {
         const { data: { user } } = await _supabase.auth.getUser();
@@ -140,49 +103,44 @@
     }
 
     async function analizEt() {
-        const urun = document.getElementById('urun').value;
         const ulke = document.getElementById('ulke').value;
         const file = document.getElementById('fotoInput').files[0];
-        const btn = document.getElementById('analizBtn');
+        const btn = document.getElementById('btn');
+        if(!ulke || !file) return alert("Eksik bilgi!");
 
-        if(!ulke) return alert("Ülke lazım!");
-        
-        btn.disabled = true; btn.innerText = "İşleniyor...";
+        btn.disabled = true; btn.innerText = "İnceleniyor...";
 
         try {
-            let bodyData;
-            if (file) {
-                // Görseli burada "zayıflatıyoruz"
-                const resizedBase64 = await resizeImage(file);
-                const pureBase64 = resizedBase64.split(',')[1];
-                
-                bodyData = {
-                    contents: [{
-                        parts: [
-                            { text: `Sen gümrük müşavirisin. ${ulke} menşeli bu ürünü analiz et. GTİP ve vergi oranlarını yaz. Ürün: ${urun}` },
-                            { inline_data: { mime_type: "image/jpeg", data: pureBase64 } }
-                        ]
-                    }]
-                };
-            } else {
-                bodyData = { contents: [{ parts: [{ text: `Gümrük analizi yap: ${urun}, Menşe: ${ulke}` }] }] };
-            }
+            const resizedBase64 = await resizeImage(file);
+            const pureBase64 = resizedBase64.split(',')[1];
+            
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: `Gümrük müşaviri olarak bu ${ulke} menşeli ürünü analiz et. GTİP ve vergi oranlarını yaz.` },
+                        { inline_data: { mime_type: "image/jpeg", data: pureBase64 } }
+                    ]
+                }]
+            };
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+            // KRİTİK DEĞİŞİKLİK: gemini-1.5-flash-latest kullanımı
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`;
+
+            const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(bodyData)
+                body: JSON.stringify(payload)
             });
 
             const data = await res.json();
             if (data.error) throw new Error(data.error.message);
 
-            const rapor = data.candidates[0].content.parts[0].text;
-            document.getElementById('raporIcerik').innerHTML = rapor.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, "<br>");
+            const text = data.candidates[0].content.parts[0].text;
+            document.getElementById('rapor').innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, "<br>");
             document.getElementById('sonuc').style.display = 'block';
 
         } catch (e) {
-            alert("Hata oluştu! Görseli değiştirmeyi dene. Mesaj: " + e.message);
+            alert("Hata: " + e.message);
         } finally {
             btn.disabled = false; btn.innerText = "ANALİZİ BAŞLAT";
         }
