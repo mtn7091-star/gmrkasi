@@ -9,18 +9,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #00f2fe; --secondary: #4facfe; --dark: #0b1120; }
-        body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; padding-top: 50px; }
-        .glass-card { background: #1e293b; border-radius: 24px; padding: 40px; border: 1px solid #334155; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: #f1f5f9; font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; padding-top: 50px; }
+        .glass-card { backdrop-filter: blur(10px); background: rgba(30, 41, 59, 0.7); border-radius: 24px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .auth-card { max-width: 450px; margin: auto; }
         .app-card { max-width: 900px; margin: auto; }
         .input-box { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
         .input-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
-        .btn-premium { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; border-radius: 12px; padding: 15px; width: 100%; transition: 0.3s; }
-        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 242, 254, 0.2); }
+        .btn-premium { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; border-radius: 12px; padding: 15px; width: 100%; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 242, 254, 0.5); }
         #sonuc { background: #0f172a; border-radius: 16px; padding: 25px; margin-top: 25px; border-left: 5px solid var(--primary); display: none; }
         .history-item { background: #161e2e; border: 1px solid #334155; border-radius: 10px; padding: 15px; margin-bottom: 10px; transition: 0.2s; }
         .history-item:hover { border-color: var(--primary); }
         .hidden { display: none !important; }
+        .feature-icon { color: var(--primary); font-size: 1.5rem; margin-bottom: 15px; }
+        .footer-link { color: #94a3b8; text-decoration: none; transition: 0.3s; }
+        .footer-link:hover { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -34,7 +37,7 @@
         </div>
         <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
         <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
-        <button onclick="handleLogin()" id="loginBtn" class="btn btn-premium mb-3">GİRİŞ YAP</button>
+        <button onclick="handleLogin()" id="loginBtn" class="btn btn-premium mb-3 w-100">GİRİŞ YAP</button>
         <button onclick="handleSignUp()" class="btn btn-outline-light w-100 btn-sm border-secondary text-muted">Kayıt Ol</button>
     </div>
 
@@ -51,7 +54,7 @@
             <div class="col-md-6"><div class="input-box"><small class="text-muted d-block">ÜRÜN</small><input type="text" id="urun" placeholder="Örn: Drone"></div></div>
             <div class="col-md-6"><div class="input-box"><small class="text-muted d-block">MENŞE ÜLKE</small><input type="text" id="ulke" placeholder="Örn: Çin"></div></div>
         </div>
-        <button onclick="analizVeKaydet()" id="analizBtn" class="btn btn-premium">YAPAY ZEKA ANALİZİNİ BAŞLAT</button>
+        <button onclick="analizVeKaydet()" id="analizBtn" class="btn btn-premium w-100">YAPAY ZEKA ANALİZİNİ BAŞLAT</button>
 
         <div id="sonuc">
             <h5 class="text-info mb-3"><i class="fa-solid fa-file-invoice me-2"></i> Analiz Raporu</h5>
@@ -62,6 +65,35 @@
             <h5 class="text-muted mb-3 border-bottom pb-2">Geçmiş Analizlerim</h5>
             <div id="gecmisListesi" class="row"></div>
         </div>
+
+        <hr class="border-secondary my-5">
+
+        <div class="row text-center mt-5">
+            <div class="col-md-4 mb-4">
+                <i class="fa-solid fa-bolt-lightning feature-icon"></i>
+                <h6>Işık Hızında Analiz</h6>
+                <p class="small text-muted">Saniyeler içinde GTİP ve vergi oranlarını hesaplar.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <i class="fa-solid fa-brain feature-icon"></i>
+                <h6>Yapay Zeka Destekli</h6>
+                <p class="small text-muted">Gemini teknolojisi ile en güncel yorumları sunar.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <i class="fa-solid fa-shield-halved feature-icon"></i>
+                <h6>Güvenli Veritabanı</h6>
+                <p class="small text-muted">Analizleriniz sadece size özel saklanır.</p>
+            </div>
+        </div>
+
+        <footer class="text-center mt-5 pb-4 border-top border-secondary pt-4">
+            <p class="small text-muted">© 2026 CustomsAI Pro. Tüm Hakları Saklıdır.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="#" class="footer-link small">Kullanım Koşulları</a>
+                <a href="#" class="footer-link small">Gizlilik Politikası</a>
+                <a href="mailto:destek@gumrukasistani.com" class="footer-link small">Destek</a>
+            </div>
+        </footer>
     </div>
 </div>
 
@@ -70,7 +102,6 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // GİRİŞ / KAYIT
     async function handleSignUp() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -94,7 +125,6 @@
         location.reload();
     }
 
-    // OTURUM KONTROLÜ
     async function checkUser() {
         const { data: { user } } = await _supabase.auth.getUser();
         if (user) {
@@ -105,7 +135,6 @@
         }
     }
 
-    // ANALİZ VE KAYIT
     async function analizVeKaydet() {
         const geminiKey = "AIzaSyBuRZRF-9-5XpZlBnd_p8I1g2sF__BNBIg";
         const urun = document.getElementById('urun').value;
@@ -123,18 +152,16 @@
             const data = await res.json();
             const rapor = data.candidates[0].content.parts[0].text;
 
-            // Veritabanına Kaydet
             const { data: { user } } = await _supabase.auth.getUser();
             await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
 
             document.getElementById('raporIcerik').innerHTML = rapor.replace(/\*\*(.*?)\*\*/g, '<b class="text-info">$1</b>').replace(/\n/g, "<br>");
             document.getElementById('sonuc').style.display = 'block';
-            gecmisiYukle(); // Listeyi güncelle
+            gecmisiYukle();
         } catch (e) { alert("Hata: " + e.message); }
         finally { btn.disabled = false; btn.innerText = "ANALİZİ BAŞLAT"; }
     }
 
-    // GEÇMİŞİ ÇEK
     async function gecmisiYukle() {
         const { data: { user } } = await _supabase.auth.getUser();
         const { data } = await _supabase.from('arama_gecmisi').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
@@ -147,7 +174,7 @@
                     <div class="history-item">
                         <small class="text-muted">${new Date(item.created_at).toLocaleDateString()}</small>
                         <h6 class="text-info mb-1">${item.urun}</h6>
-                        <p class="small m-0">${item.ulke}</p>
+                        <p class="small m-0 text-truncate">${item.ulke}</p>
                     </div>
                 </div>`;
             });
