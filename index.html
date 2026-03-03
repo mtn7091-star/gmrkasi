@@ -99,15 +99,14 @@
 </div>
 
 <script>
- // 1. SUPABASE BAĞLANTISI (Bunlar sabit kalıyor)
+ // 1. BAĞLANTILAR (Dokunma)
 const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// DİKKAT: Burası boş kalacak, sistem anahtarı Supabase'den kendi çekecek!
-let geminiKey = ""; 
+let geminiKey = ""; // Kasa başta boş, Supabase'den dolacak
 
-// 2. ANAHTARI VERİTABANINDAN ÇEKEN FONKSİYON
+// 2. ANAHTARI SUPABASE'DEN ÇEKME
 async function keyiVeritabanindanGetir() {
     try {
         const { data, error } = await _supabase
@@ -119,40 +118,37 @@ async function keyiVeritabanindanGetir() {
         if (error) throw error;
         if (data) {
             geminiKey = data.anahtar_degeri;
-            console.log("✅ Güvenlik: API Anahtarı kasadan başarıyla alındı.");
+            console.log("✅ API Anahtarı kasadan alındı.");
         }
     } catch (e) {
-        console.error("❌ Kritik Hata: Anahtar veritabanından çekilemedi!", e.message);
+        console.error("❌ Anahtar çekilemedi:", e.message);
     }
 }
 
-// 3. SAYFA YÜKLENDİĞİNDE ÇALIŞACAK KOMUTLAR
+// 3. SAYFA YÜKLENİNCE ÇALIŞTIR
 window.onload = async () => {
-    await checkUser();             // Kullanıcı giriş yapmış mı bak
-    await keyiVeritabanindanGetir(); // Hemen gizli anahtarı çek
+    await checkUser();             // Kullanıcıyı kontrol et
+    await keyiVeritabanindanGetir(); // Anahtarı gizlice çek
 };
 
-// 4. ANALİZ MOTORU (GİRİŞ YAPANLAR İÇİN)
+// 4. ANALİZ FONKSİYONU (1.5 FLASH KULLANIR)
 async function analizVeKaydet() {
     const urun = document.getElementById('urun').value;
     const ulke = document.getElementById('ulke').value;
     const btn = document.getElementById('analizBtn');
 
-    if(!geminiKey) {
-        await keyiVeritabanindanGetir(); // Anahtar yoksa bir daha dene
-        if(!geminiKey) return alert("Sistem henüz hazır değil, lütfen 2 saniye bekleyip tekrar deneyin.");
-    }
-
-    if(!urun || !ulke) return alert("Ürün ve ülke bilgilerini boş bırakma başkan!");
+    if(!geminiKey) await keyiVeritabanindanGetir(); 
+    if(!urun || !ulke) return alert("Bilgileri girin.");
     
     btn.disabled = true; 
     btn.innerText = "ANALİZ YAPILIYOR...";
 
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+        // Model 1.5 Flash olarak ayarlandı (Limit hatasını önlemek için)
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
             method: "POST", 
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri uzmanı olarak, ${ulke} menşeli ${urun} ürünü için 2026 güncel mevzuatına göre detaylı GTİP tahmini ve vergi oranlarını (KDV, ÖTV, Gümrük Vergisi vb.) içeren bir rapor hazırla.` }] }] })
+            body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri olarak ${ulke} menşeli ${urun} için detaylı analiz yap.` }] }] })
         });
         
         const data = await res.json();
@@ -161,47 +157,22 @@ async function analizVeKaydet() {
         const rapor = data.candidates[0].content.parts[0].text;
         const { data: { user } } = await _supabase.auth.getUser();
         
-        // Supabase'e Kayıt
         await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
         
-        // Ekrana Yazma
         let raporHtml = rapor.replace(/\*\*(.*?)\*\*/g, '<b class="text-info-bright">$1</b>').replace(/\n/g, "<br>");
         document.getElementById('raporIcerik').innerHTML = raporHtml;
         document.getElementById('sonuc').style.display = 'block';
         gecmisiYukle();
 
     } catch (e) {
-        alert("Hata Oluştu: " + e.message);
+        alert("Hata: " + e.message);
     } finally {
         btn.disabled = false; 
         btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR";
     }
 }
 
-// 5. ÜCRETSİZ HIZLI SORGULAMA
-async function freeAnaliz() {
-    const urun = document.getElementById('freeUrun').value;
-    const ulke = document.getElementById('freeUlke').value;
-    const btn = document.getElementById('freeBtn');
-
-    if(!geminiKey) await keyiVeritabanindanGetir();
-    if(!urun || !ulke) return alert("Bilgileri girin.");
-
-    btn.innerText = "SORGULANIYOR..."; btn.disabled = true;
-    try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: `${ulke} menşeli ${urun} için kısa gümrük bilgisi ver.` }] }] })
-        });
-        const data = await res.json();
-        const rapor = data.candidates[0].content.parts[0].text;
-        document.getElementById('freeRapor').innerHTML = "<b>Ön Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
-        document.getElementById('freeSonuc').classList.remove('hidden');
-    } catch (e) { alert("Hata veya Limit Doldu."); }
-    finally { btn.innerText = "ANINDA SORGULA"; btn.disabled = false; }
-}
-
-// 6. DİĞER STANDART FONKSİYONLAR
+// 5. DİĞER FONKSİYONLAR (LOGIN, LOGOUT, GECMİS)
 async function handleLogin() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -219,22 +190,18 @@ async function checkUser() {
         gecmisiYukle();
     }
 }
-function toggleTheme() {
-    document.body.classList.toggle('light-mode');
-    const icon = document.getElementById('themeIcon');
-    icon.classList.toggle('fa-sun'); icon.classList.toggle('fa-moon');
-}
 async function gecmisiYukle() {
     const { data: { user } } = await _supabase.auth.getUser();
     const { data } = await _supabase.from('arama_gecmisi').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
     if (data) {
         let html = '';
         data.forEach(item => {
-            html += `<div class="col-md-4"><div class="history-item"><small class="text-info-bright">${new Date(item.created_at).toLocaleDateString()}</small><h6 class="mb-1">${item.urun}</h6><p class="small m-0 opacity-75">${item.ulke}</p></div></div>`;
+            html += `<div class="col-md-4"><div class="history-item"><h6>${item.urun}</h6><p>${item.ulke}</p></div></div>`;
         });
-        document.getElementById('gecmisListesi').innerHTML = html || '<p class="opacity-50">Henüz analiz yok.</p>';
+        document.getElementById('gecmisListesi').innerHTML = html;
     }
 }
+function toggleTheme() { document.body.classList.toggle('light-mode'); }
 </script>
 </body>
 </html>
