@@ -7,77 +7,65 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #00f2fe; --accent: #4facfe; --bg: #0b1120; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-        .container { max-width: 1000px; padding: 20px; }
-        .header-text { text-align: center; margin-bottom: 40px; }
-        .header-text h1 { font-weight: 800; letter-spacing: -1px; }
-        .header-text span { color: var(--primary); }
-        
-        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 35px; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
-        
-        .input-group-custom { margin-bottom: 20px; }
-        .input-group-custom label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
-        .input-group-custom input { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; border-radius: 8px; padding: 12px; color: white; outline: none; transition: 0.3s; }
-        .input-group-custom input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
-        
-        .btn-main { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 700; text-transform: uppercase; transition: 0.3s; cursor: pointer; }
-        .btn-hizli { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-        .btn-hizli:hover { background: var(--primary); color: var(--bg); }
-        .btn-login { background: linear-gradient(90deg, var(--primary), var(--accent)); color: var(--bg); }
-        .btn-login:hover { opacity: 0.9; transform: translateY(-2px); }
-        
-        #sonucBox { grid-column: span 2; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 12px; padding: 20px; display: none; margin-top: 20px; }
-        
-        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } #sonucBox { grid-column: span 1; } }
+        :root { --primary: #00f2fe; --accent: #4facfe; --dark: #0b1120; }
+        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; min-height: 100vh; padding: 40px 0; }
+        .glass-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; backdrop-filter: blur(15px); padding: 35px; height: 100%; }
+        .header-title { font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; }
+        .header-title span { color: var(--primary); }
+        .input-box { background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 10px; padding: 12px; margin-bottom: 15px; }
+        .input-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+        .btn-action { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: 700; text-transform: uppercase; transition: 0.3s; }
+        .btn-guest { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-guest:hover { background: var(--primary); color: var(--dark); }
+        .btn-pro { background: linear-gradient(90deg, var(--primary), var(--accent)); color: var(--dark); }
+        #reportArea { display: none; margin-top: 30px; background: rgba(0, 242, 254, 0.03); border: 1px solid rgba(0, 242, 254, 0.1); border-radius: 15px; padding: 25px; }
+        .badge-custom { font-size: 0.7rem; background: rgba(0, 242, 254, 0.1); color: var(--primary); padding: 5px 12px; border-radius: 50px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-text">
-        <h1>CustomsAI <span>Pro</span></h1>
-        <p class="text-secondary">Türkiye'nin ilk yapay zeka destekli gümrük müşavir asistanı.</p>
+<div class="container" style="max-width: 950px;">
+    <div class="text-center mb-5">
+        <h1 class="header-title">CustomsAI <span>Pro</span></h1>
+        <p class="text-secondary small">Türkiye'nin En Gelişmiş Yapay Zeka Gümrük Asistanı</p>
     </div>
 
-    <div class="main-grid">
-        <div class="glass-card">
-            <h3 class="h5 mb-4 text-center">⚡ Hızlı Deneme</h3>
-            <div class="input-group-custom">
-                <label>Ürün Tanımı</label>
-                <input type="text" id="hizliUrun" placeholder="Örn: Drone">
-            </div>
-            <div class="input-group-custom">
-                <label>Menşe Ülke</label>
-                <input type="text" id="hizliUlke" placeholder="Örn: Çin">
-            </div>
-            <button onclick="sorgula(true)" id="hizliBtn" class="btn-main btn-hizli">ANINDA SORGULA</button>
-        </div>
-
-        <div class="glass-card" id="authSide">
-            <h3 class="h5 mb-4 text-center">👤 Müşavir Girişi</h3>
-            <div id="loginForm">
-                <div class="input-group-custom">
-                    <label>E-posta</label>
-                    <input type="email" id="email" placeholder="mail@adres.com">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between mb-4">
+                    <h5 class="m-0">⚡ Hızlı Deneme</h5>
+                    <span class="badge-custom">Standart</span>
                 </div>
-                <div class="input-group-custom">
-                    <label>Şifre</label>
-                    <input type="password" id="password" placeholder="••••••••">
-                </div>
-                <button onclick="handleLogin()" class="btn-main btn-login">SİSTEME GİRİŞ YAP</button>
-            </div>
-            
-            <div id="proPanel" class="d-none text-center">
-                <p class="text-info mb-4">Pro Mod Aktif - 2.5 Flash Engine</p>
-                <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm">Oturumu Kapat</button>
+                <div class="input-box"><input type="text" id="hizliUrun" placeholder="Ürün Tanımı"></div>
+                <div class="input-box"><input type="text" id="hizliUlke" placeholder="Menşe Ülke"></div>
+                <button onclick="sorgula(true)" id="hizliBtn" class="btn-action btn-guest">ANINDA SORGULA</button>
             </div>
         </div>
 
-        <div id="sonucBox">
-            <h5 class="text-primary mb-3">Analiz Raporu</h5>
-            <div id="rapor" style="font-size: 0.9rem; line-height: 1.6;"></div>
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between mb-4">
+                    <h5 class="m-0">👤 Müşavir Girişi</h5>
+                    <span class="badge-custom" style="color: #4facfe;">Pro Mod</span>
+                </div>
+                <div id="loginForm">
+                    <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
+                    <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
+                    <button onclick="handleLogin()" class="btn-action btn-pro">GİRİŞ YAP</button>
+                </div>
+                <div id="proPanel" class="d-none text-center py-4">
+                    <p class="text-info small mb-3">2.5 Flash Engine Aktif</p>
+                    <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm">Oturumu Kapat</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div id="reportArea">
+                <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">📄 GÜMRÜK ANALİZ RAPORU</h6>
+                <div id="raporMetni" class="small text-light" style="line-height: 1.8;"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -92,7 +80,7 @@
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const { error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) { await _supabase.auth.signUp({ email, password }); alert("Hesap aktif edildi."); }
+        if (error) { await _supabase.auth.signUp({ email, password }); }
         location.reload();
     }
 
@@ -111,32 +99,32 @@
         const ulke = document.getElementById('hizliUlke').value;
         const btn = document.getElementById('hizliBtn');
 
-        if(!urun || !ulke) return alert("Eksik bilgi!");
+        if(!urun || !ulke) return alert("Bilgileri doldur başkan!");
 
-        // Hızlı deneme koruması
-        const last = localStorage.getItem('l_c');
-        if (isGuest && last && (Date.now() - last < 20000)) return alert("Lütfen 20 saniye bekleyin.");
+        // Hızlı sorgu limit koruması
+        const last = localStorage.getItem('last_call');
+        if (isGuest && last && (Date.now() - last < 15000)) return alert("Limitleri zorlamayalım, 15 saniye bekleyin.");
 
         btn.disabled = true; btn.innerText = "SORGULANIYOR...";
 
         try {
-            // Limit dostu model seçimi
+            // Hızlı denemede 1.5, Pro'da 2.5 Flash (2.0-flash)
             const model = isGuest ? "gemini-1.5-flash" : "gemini-2.0-flash";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
             
             const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: `${urun} ürünü için ${ulke} menşeli gümrük vergileri ve GTİP analizi yap.` }] }] })
+                body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri raporu: ${urun}, Menşe: ${ulke}. GTİP ve vergi oranlarını detaylandır.` }] }] })
             });
 
             const data = await res.json();
-            if (data.error) throw new Error("Limit doldu, biraz bekleyin.");
+            if (data.error) throw new Error("Limit doldu, biraz bekleyin veya Pro giriş yapın.");
 
-            if (isGuest) localStorage.setItem('l_c', Date.now());
+            if (isGuest) localStorage.setItem('last_call', Date.now());
 
-            document.getElementById('rapor').innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            document.getElementById('sonucBox').style.display = 'block';
+            document.getElementById('raporMetni').innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            document.getElementById('reportArea').style.display = 'block';
 
         } catch (e) {
             alert(e.message);
