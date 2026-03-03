@@ -3,71 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CustomsAI | 2.5 Flash Power</title>
+    <title>CustomsAI Pro | 2.5 Flash & Anti-Limit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #00f2fe; --dark: #0b1120; }
-        body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: white; font-family: sans-serif; min-height: 100vh; padding-top: 30px; }
-        .glass-card { background: rgba(30, 41, 59, 0.95); border-radius: 20px; padding: 25px; border: 1px solid var(--primary); margin-bottom: 20px; }
-        .input-box { background: #1e293b; border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px solid #475569; }
-        .input-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
-        .btn-flash { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 900; width: 100%; padding: 15px; border-radius: 12px; transition: 0.3s; }
-        .btn-flash:disabled { opacity: 0.6; cursor: not-allowed; }
-        #sonucAlan { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 20px; margin-top: 20px; display: none; border-left: 5px solid var(--primary); }
+        body { background: radial-gradient(circle at top right, #1e293b, #0b1120); color: white; font-family: 'Inter', sans-serif; min-height: 100vh; padding-top: 30px; }
+        .glass-card { background: rgba(30, 41, 59, 0.95); border-radius: 20px; padding: 30px; border: 1px solid rgba(0, 242, 254, 0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.5); height: 100%; }
+        .input-box { background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 12px; margin-bottom: 20px; border: 1px solid #475569; }
+        .input-box input { background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 1rem; }
+        .btn-analiz { background: linear-gradient(90deg, #00f2fe, #4facfe); border: none; color: #0b1120; font-weight: 800; width: 100%; padding: 15px; border-radius: 12px; transition: 0.3s; text-transform: uppercase; }
+        .btn-analiz:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+        #sonucAlan { background: rgba(0,0,0,0.6); border-radius: 15px; padding: 25px; margin-top: 30px; display: none; border-left: 6px solid var(--primary); }
+        .status-badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 20px; background: rgba(0, 242, 254, 0.1); color: var(--primary); }
     </style>
 </head>
 <body>
 
-<div class="container" style="max-width: 650px;">
-    
-    <div id="guestSection" class="glass-card">
-        <h4 class="text-center mb-3">🚀 Hızlı Deneme (Limitli)</h4>
-        <div class="input-box"><input type="text" id="hizliUrun" placeholder="Ürün Tanımı (Örn: Drone)"></div>
-        <div class="input-box"><input type="text" id="hizliUlke" placeholder="Menşe Ülke (Örn: Çin)"></div>
-        <button onclick="hizliSorgu(true)" id="hizliBtn" class="btn-flash">2.5 FLASH İLE HIZLI DENE</button>
-        <div class="text-center mt-3 small">
-            <a href="#" onclick="showLogin()" class="text-info">Zaten hesabım var / Giriş Yap</a>
+<div class="container" style="max-width: 1000px;">
+    <h2 class="text-center fw-bold mb-5">CustomsAI <span style="color:var(--primary)">Pro</span></h2>
+
+    <div class="row g-4">
+        <div class="col-md-6" id="hizliKisim">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0">⚡ Hızlı Deneme</h4>
+                    <span class="status-badge">Limitli Erişim</span>
+                </div>
+                <p class="small text-secondary mb-4">Kayıt olmadan temel gümrük verilerini sorgulayın.</p>
+                <div class="input-box"><input type="text" id="hizliUrun" placeholder="Ürün (Örn: Drone)"></div>
+                <div class="input-box"><input type="text" id="hizliUlke" placeholder="Ülke (Örn: Çin)"></div>
+                <button onclick="analizBaslat(true)" id="hizliBtn" class="btn-analiz">ANINDA SORGULA</button>
+            </div>
+        </div>
+
+        <div class="col-md-6" id="authKisim">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0">👤 Müşavir Girişi</h4>
+                    <span class="status-badge" style="color:#4facfe">Tam Erişim</span>
+                </div>
+                <div id="loginForm">
+                    <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
+                    <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
+                    <button onclick="handleLogin()" class="btn-analiz" style="background: #4facfe">SİSTEME GİRİŞ YAP</button>
+                    <button class="btn btn-link w-100 mt-2 text-secondary btn-sm text-decoration-none">Hesap Oluştur</button>
+                </div>
+                <div id="proForm" class="d-none">
+                    <div class="d-flex justify-content-between mb-3">
+                        <small class="text-info">Hoş Geldiniz!</small>
+                        <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm p-1" style="font-size:0.6rem">Çıkış</button>
+                    </div>
+                    <div class="input-box"><input type="text" id="proUrun" placeholder="Detaylı Ürün Adı"></div>
+                    <div class="input-box"><input type="text" id="proUlke" placeholder="Menşe Ülke"></div>
+                    <button onclick="analizBaslat(false)" id="proBtn" class="btn-analiz">PRO 2.5 FLASH ANALİZ</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="authSection" class="glass-card text-center d-none">
-        <h3>Giriş Yap</h3>
-        <div class="input-box"><input type="email" id="email" placeholder="E-posta"></div>
-        <div class="input-box"><input type="password" id="password" placeholder="Şifre"></div>
-        <button onclick="handleLogin()" class="btn-flash">SİSTEME GİRİŞ YAP</button>
-        <button onclick="showGuest()" class="btn btn-link btn-sm text-secondary mt-2">Hızlı Denemeye Dön</button>
+    <div id="sonucAlan" class="mx-auto" style="max-width: 800px;">
+        <h5 style="color:var(--primary)" class="mb-3">📋 Analiz Sonucu:</h5>
+        <div id="raporMetni" class="lh-lg"></div>
     </div>
-
-    <div id="memberSection" class="glass-card d-none">
-        <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
-            <h4 class="fw-bold">Pro Panel (Sınırsız)</h4>
-            <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm">Çıkış</button>
-        </div>
-        <div class="input-box"><input type="text" id="proUrun" placeholder="Detaylı Ürün Tanımı"></div>
-        <div class="input-box"><input type="text" id="proUlke" placeholder="Menşe Ülke"></div>
-        <button onclick="hizliSorgu(false)" id="proBtn" class="btn-flash">PROFESYONEL ANALİZ</button>
-    </div>
-
-    <div id="sonucAlan">
-        <h6 style="color:var(--primary)">🤖 Gümrük Raporu:</h6>
-        <div id="raporMetni" class="small lh-lg text-light"></div>
-    </div>
-
 </div>
 
 <script>
-    // Konfigürasyon
     const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
     const geminiKey = "AIzaSyB3bMCCNqh6asNhtHbXi-tvBt9s18DEIE4"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // UI Kontrolleri
-    function showLogin() { document.getElementById('guestSection').classList.add('d-none'); document.getElementById('authSection').classList.remove('d-none'); }
-    function showGuest() { document.getElementById('authSection').classList.add('d-none'); document.getElementById('guestSection').classList.remove('d-none'); }
-
-    // Supabase Auth
+    // GİRİŞ-ÇIKIŞ İŞLEMLERİ
     async function handleLogin() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -80,32 +87,37 @@
     async function checkUser() {
         const { data: { user } } = await _supabase.auth.getUser();
         if (user) {
-            document.getElementById('guestSection').classList.add('d-none');
-            document.getElementById('authSection').classList.add('d-none');
-            document.getElementById('memberSection').classList.remove('d-none');
+            document.getElementById('loginForm').classList.add('d-none');
+            document.getElementById('proForm').classList.remove('d-none');
+            document.getElementById('hizliKisim').style.opacity = "0.5";
+            document.getElementById('hizliBtn').disabled = true;
         }
     }
 
-    // ANA ANALİZ MOTORU (2.5 FLASH)
-    async function hizliSorgu(isGuest) {
+    // ANA MOTOR (Limit Dostu)
+    async function analizBaslat(isGuest) {
         const urun = document.getElementById(isGuest ? 'hizliUrun' : 'proUrun').value;
         const ulke = document.getElementById(isGuest ? 'hizliUlke' : 'proUlke').value;
         const btn = document.getElementById(isGuest ? 'hizliBtn' : 'proBtn');
 
-        // HIZLI DENEME İÇİN ZAMAN KISITI (30 Saniye)
+        if(!urun || !ulke) return alert("Eksik bilgi!");
+
+        // HIZLI DENEME KORUMASI (15 Saniye)
         if (isGuest) {
-            const last = localStorage.getItem('last_hit');
-            if (last && (Date.now() - last < 30000)) return alert("Dayı yavaş! Hızlı deneme için 30 saniye bekle veya giriş yap.");
+            const last = localStorage.getItem('last_call');
+            if (last && (Date.now() - last < 15000)) return alert("Hızlı deneme limitindesiniz. Lütfen 15 saniye bekleyin!");
         }
 
-        if(!urun || !ulke) return alert("Bilgileri gir bro!");
-        btn.disabled = true; btn.innerText = "2.5 FLASH ÇALIŞIYOR...";
+        btn.disabled = true;
+        btn.innerText = "SORGULANIYOR...";
 
         try {
-            const prompt = `Gümrük müşaviri raporu: Ürün ${urun}, Menşe ${ulke}. GTİP ve vergi oranlarını detaylı yaz.`;
-            // DAYI BURADA: gemini-2.0-flash (Senin istediğin 2.5 gücü)
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+            // STRATEJİK SEÇİM: Misafir 1.5-Flash (Bol kota), Üye 2.0-Flash (Daha zeki)
+            const model = isGuest ? "gemini-1.5-flash" : "gemini-2.0-flash";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
             
+            const prompt = `Gümrük müşaviri olarak analiz yap: Ürün ${urun}, Menşe ${ulke}. Tahmini GTİP kodu ve vergi oranlarını (GV, KDV, ÖTV, İGV) tablo veya liste halinde sun.`;
+
             const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -113,18 +125,23 @@
             });
 
             const data = await res.json();
-            if (data.error) throw new Error(data.error.message);
+            if (data.error) {
+                if(data.error.code === 429) throw new Error("Google şu an çok yoğun. Giriş yapıp denerseniz öncelik alabilirsiniz.");
+                throw new Error(data.error.message);
+            }
 
-            if (isGuest) localStorage.setItem('last_hit', Date.now());
+            if (isGuest) localStorage.setItem('last_call', Date.now());
 
             const text = data.candidates[0].content.parts[0].text;
-            document.getElementById('raporMetni').innerHTML = text.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            document.getElementById('raporMetni').innerHTML = text.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--primary)">$1</b>');
             document.getElementById('sonucAlan').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 
         } catch (e) {
-            alert("Hata: " + e.message);
+            alert(e.message);
         } finally {
-            btn.disabled = false; btn.innerText = isGuest ? "HIZLI DENE" : "PROFESYONEL ANALİZ";
+            btn.disabled = false;
+            btn.innerText = isGuest ? "ANINDA SORGULA" : "PRO 2.5 FLASH ANALİZ";
         }
     }
 
