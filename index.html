@@ -145,17 +145,15 @@ async function analizVeKaydet() {
 
     try {
         // Model 1.5 Flash olarak ayarlandı (Limit hatasını önlemek için)
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        contents: [{
-            parts: [{
-                text: `Gümrük müşaviri uzmanı olarak, ${ulke} menşeli ${urun} ürünü için detaylı GTİP tahmini ve vergi oranlarını içeren bir rapor hazırla.`
-            }]
-        }]
+       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
+    method: "POST", 
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+        contents: [{ 
+            parts: [{ 
+                text: `Gümrük müşaviri uzmanı olarak, ${ulke} menşeli ${urun} ürünü için detaylı GTİP tahmini ve vergi oranlarını içeren bir rapor hazırla.` 
+            }] 
+        }] 
     })
 });
         
