@@ -99,14 +99,15 @@
 </div>
 
 <script>
- // 1. BAĞLANTILAR
+ // 1. SUPABASE BAĞLANTISI (Bunlar sabit kalıyor)
 const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let geminiKey = ""; // Kasa başta boş
+// DİKKAT: Burası boş kalacak, sistem anahtarı Supabase'den kendi çekecek!
+let geminiKey = ""; 
 
-// 2. ANAHTARI KASADAN ÇEKME (SUPABASE)
+// 2. ANAHTARI VERİTABANINDAN ÇEKEN FONKSİYON
 async function keyiVeritabanindanGetir() {
     try {
         const { data, error } = await _supabase
@@ -116,37 +117,42 @@ async function keyiVeritabanindanGetir() {
             .single();
 
         if (error) throw error;
-        geminiKey = data.anahtar_degeri;
-        console.log("✅ Anahtar Güvenli Şekilde Yüklendi.");
+        if (data) {
+            geminiKey = data.anahtar_degeri;
+            console.log("✅ Güvenlik: API Anahtarı kasadan başarıyla alındı.");
+        }
     } catch (e) {
-        console.error("❌ Anahtar çekilemedi:", e.message);
+        console.error("❌ Kritik Hata: Anahtar veritabanından çekilemedi!", e.message);
     }
 }
 
-// 3. SAYFA AÇILDIĞINDA ÇALIŞACAKLAR
+// 3. SAYFA YÜKLENDİĞİNDE ÇALIŞACAK KOMUTLAR
 window.onload = async () => {
-    await checkUser(); // Üye kontrolü
-    await keyiVeritabanindanGetir(); // Gizli keyi çek
+    await checkUser();             // Kullanıcı giriş yapmış mı bak
+    await keyiVeritabanindanGetir(); // Hemen gizli anahtarı çek
 };
 
-// 4. MÜŞAVİR ANALİZ MOTORU (PROFESYONEL)
+// 4. ANALİZ MOTORU (GİRİŞ YAPANLAR İÇİN)
 async function analizVeKaydet() {
     const urun = document.getElementById('urun').value;
     const ulke = document.getElementById('ulke').value;
     const btn = document.getElementById('analizBtn');
 
-    if(!geminiKey) await keyiVeritabanindanGetir(); 
-    if(!urun || !ulke) return alert("Bilgileri girin.");
+    if(!geminiKey) {
+        await keyiVeritabanindanGetir(); // Anahtar yoksa bir daha dene
+        if(!geminiKey) return alert("Sistem henüz hazır değil, lütfen 2 saniye bekleyip tekrar deneyin.");
+    }
+
+    if(!urun || !ulke) return alert("Ürün ve ülke bilgilerini boş bırakma başkan!");
     
     btn.disabled = true; 
     btn.innerText = "ANALİZ YAPILIYOR...";
 
     try {
-        // Model ismini 2.0-flash olarak güncelledim (En hızlısı bu)
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
             method: "POST", 
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri olarak ${ulke} menşeli ${urun} için detaylı GTİP ve vergi analizi yap.` }] }] })
+            body: JSON.stringify({ contents: [{ parts: [{ text: `Gümrük müşaviri uzmanı olarak, ${ulke} menşeli ${urun} ürünü için 2026 güncel mevzuatına göre detaylı GTİP tahmini ve vergi oranlarını (KDV, ÖTV, Gümrük Vergisi vb.) içeren bir rapor hazırla.` }] }] })
         });
         
         const data = await res.json();
@@ -155,30 +161,31 @@ async function analizVeKaydet() {
         const rapor = data.candidates[0].content.parts[0].text;
         const { data: { user } } = await _supabase.auth.getUser();
         
-        // Veritabanına Kayıt
+        // Supabase'e Kayıt
         await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
         
-        // Ekrana Yazdırma
+        // Ekrana Yazma
         let raporHtml = rapor.replace(/\*\*(.*?)\*\*/g, '<b class="text-info-bright">$1</b>').replace(/\n/g, "<br>");
         document.getElementById('raporIcerik').innerHTML = raporHtml;
         document.getElementById('sonuc').style.display = 'block';
         gecmisiYukle();
 
     } catch (e) {
-        alert("Hata: " + e.message);
+        alert("Hata Oluştu: " + e.message);
     } finally {
-        btn.disabled = false; btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR";
+        btn.disabled = false; 
+        btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR";
     }
 }
 
-// 5. HIZLI DENEME MOTORU
+// 5. ÜCRETSİZ HIZLI SORGULAMA
 async function freeAnaliz() {
     const urun = document.getElementById('freeUrun').value;
     const ulke = document.getElementById('freeUlke').value;
     const btn = document.getElementById('freeBtn');
-    
+
     if(!geminiKey) await keyiVeritabanindanGetir();
-    if(!urun || !ulke) return alert("Ürün ve ülke girin.");
+    if(!urun || !ulke) return alert("Bilgileri girin.");
 
     btn.innerText = "SORGULANIYOR..."; btn.disabled = true;
     try {
@@ -190,11 +197,11 @@ async function freeAnaliz() {
         const rapor = data.candidates[0].content.parts[0].text;
         document.getElementById('freeRapor').innerHTML = "<b>Ön Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
         document.getElementById('freeSonuc').classList.remove('hidden');
-    } catch (e) { alert("Sorgu limiti doldu."); }
+    } catch (e) { alert("Hata veya Limit Doldu."); }
     finally { btn.innerText = "ANINDA SORGULA"; btn.disabled = false; }
 }
 
-// 6. DİĞER FONKSİYONLAR (LOGIN, LOGOUT, THEME)
+// 6. DİĞER STANDART FONKSİYONLAR
 async function handleLogin() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
