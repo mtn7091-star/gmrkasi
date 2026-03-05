@@ -109,45 +109,58 @@
     }
 
     async function fullAnaliz() {
-        const urun = document.getElementById('urunInput').value;
-        const ulke = document.getElementById('ulkeInput').value;
-        const btn = document.getElementById('anaButon');
+    const urun = document.getElementById('urunInput').value;
+    const ulke = document.getElementById('ulkeInput').value;
+    const btn = document.getElementById('anaButon');
 
-        if (!urun || !ulke) return alert("Eksik bilgi!");
-        if (kredi <= 0) return alert("Kredi doldu.");
+    if (!urun || !ulke) return alert("Eksik bilgi!");
+    if (kredi <= 0) return alert("Kredi doldu.");
 
-        document.getElementById('loading').classList.remove('hidden');
-        document.getElementById('sonucAlani').classList.add('hidden');
-        btn.disabled = true;
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('sonucAlani').classList.add('hidden');
+    btn.disabled = true;
 
-        try {
-            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: "Kıdemli Türk Gümrük Müşavirisin. Detaylı Türkçe rapor hazırla." },
-                        { role: "user", content: `${ulke} - ${urun} analizi.` }
-                    ],
-                    temperature: 0.5
-                })
-            });
-            const data = await res.json();
-            const rapor = data.choices[0].message.content;
+    try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    { 
+                        role: "system", 
+                        content: `Sen 30 yıllık deneyime sahip, T.C. Ticaret Bakanlığı mevzuatına hakim kıdemli bir Gümrük Müşavirisin. 
+                        Görevin: Kullanıcının belirttiği ürün ve ülke için teknik bir gümrük raporu hazırlamaktır. 
+                        KURALLAR:
+                        1. Pazar analizi, reklam veya pazarlama tavsiyesi verme.
+                        2. Raporun en başında mutlaka muhtemel 4'lü veya 6'lı GTİP kodunu belirt.
+                        3. İthalat Rejimi Kararı, Gümrük Vergisi oranları, İlave Gümrük Vergisi (İGV) ve varsa Anti-Dumping vergilerinden bahset.
+                        4. İthalatta istenebilecek belgeleri (Kayıt Belgesi, TSE, CE, Tareks vb.) listele.
+                        5. Sadece Türkçe ve profesyonel bir üslup kullan.`
+                    },
+                    { 
+                        role: "user", 
+                        content: `${ulke} menşeli ${urun} ithalatı için gümrükleme teknik raporu hazırla.`
+                    }
+                ],
+                temperature: 0.3 // Daha tutarlı ve teknik cevaplar için düşürdük
+            })
+        });
+        const data = await res.json();
+        const rapor = data.choices[0].message.content;
 
-            document.getElementById('raporIcerik').innerText = rapor;
-            document.getElementById('raporBaslik').innerText = urun.toUpperCase();
-            document.getElementById('raporTarih').innerText = new Date().toLocaleString();
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('sonucAlani').classList.remove('hidden');
+        document.getElementById('raporIcerik').innerText = rapor;
+        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " TEKNİK GÜMRÜK RAPORU";
+        document.getElementById('raporTarih').innerText = new Date().toLocaleString();
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('sonucAlani').classList.remove('hidden');
 
-            kredi--;
-            localStorage.setItem('gumrukKredi', kredi);
-            document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
-        } catch (e) { alert("Bağlantı hatası!"); }
-        finally { btn.disabled = false; }
-    }
+        kredi--;
+        localStorage.setItem('gumrukKredi', kredi);
+        document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
+    } catch (e) { alert("Bağlantı hatası!"); }
+    finally { btn.disabled = false; }
+}
 
     // PDF DÜZELTİLMİŞ VE ÇOK SAYFALI
     function pdfIndir() {
