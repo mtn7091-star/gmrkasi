@@ -63,111 +63,88 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// 1. BAĞLANTI AYARLARI
+// 1. AYARLAR
 const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Groq API Anahtarın
 const GROQ_API_KEY = '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';
 
-// 2. ANINDA SORGULA (Hızlı Analiz - Türkçe Odaklı)
+// 2. ANINDA SORGULA (TAMİR EDİLMİŞ)
 async function freeAnaliz() {
     const urun = document.getElementById('freeUrun').value;
     const ulke = document.getElementById('freeUlke').value;
     const btn = document.getElementById('freeBtn');
 
-    if(!urun || !ulke) return alert("Lütfen boş bırakmayın.");
-
-    btn.innerText = "ANALİZ EDİLİYOR..."; 
-    btn.disabled = true;
+    if(!urun || !ulke) return alert("Boş bırakmayın.");
+    btn.innerText = "SORGULANIYOR..."; btn.disabled = true;
 
     try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
                     {
-                        role: "system",
-                        content: "Sen profesyonel bir Türk gümrük müşavirisin. Sadece Türkçe cevap ver. Asla yabancı karakter veya farklı diller kullanma. Cevabını temiz bir Türkçe ile ver."
+                        role: "system", 
+                        content: "Sen Türkiye'de çalışan bir gümrük müşavirisin. Sadece TÜRKÇE konuş. Çince veya başka dillerden karakter kullanman KESİNLİKLE YASAKTIR. Yanıtına doğrudan Türkçe başla."
                     },
                     {
-                        role: "user",
-                        content: `${ulke} menşeli ${urun} ürünü için çok kısa bir gümrük ön analizi yap.`
+                        role: "user", 
+                        content: `${ulke} menşeli ${urun} için gümrük ön analizi yap.` 
                     }
-                ]
+                ],
+                temperature: 0.1, // Yaratıcılığı kıstık, saçmalamayı engeller
+                top_p: 1
             })
         });
 
         const data = await res.json();
         const rapor = data.choices[0].message.content;
-        
-        document.getElementById('freeRapor').innerHTML = "<b>Analiz Sonucu:</b><br>" + rapor.replace(/\n/g, "<br>");
+        document.getElementById('freeRapor').innerHTML = "<b>Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
         document.getElementById('freeSonuc').classList.remove('hidden');
-
-    } catch (e) { 
-        alert("Bağlantı hatası!"); 
-    } finally { 
-        btn.innerText = "ANINDA SORGULA"; 
-        btn.disabled = false; 
-    }
+    } catch (e) { alert("Hata!"); }
+    finally { btn.innerText = "ANINDA SORGULA"; btn.disabled = false; }
 }
 
-// 3. TAM ANALİZ (Detaylı Rapor - Türkçe Odaklı)
+// 3. TAM ANALİZ (TAMİR EDİLMİŞ)
 async function analizVeKaydet() {
     const urun = document.getElementById('urun').value;
     const ulke = document.getElementById('ulke').value;
     const btn = document.getElementById('analizBtn');
-
     if(!urun || !ulke) return alert("Eksik bilgi!");
 
-    btn.innerText = "DETAYLI RAPOR HAZIRLANIYOR..."; 
-    btn.disabled = true;
+    btn.innerText = "RAPOR HAZIRLANIYOR..."; btn.disabled = true;
 
     try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
                     {
-                        role: "system",
-                        content: "Sen profesyonel bir Türk gümrük müşavirisin. Analizlerini detaylı, profesyonel ve tamamen Türkçe olarak yap. Karakter hatası yapma."
+                        role: "system", 
+                        content: "Sadece Türkçe yanıt veren, profesyonel bir gümrük uzmanısın. Başka dil kullanma."
                     },
                     {
-                        role: "user",
-                        content: `${ulke} menşeli ${urun} ürünü için detaylı bir ithalat/ihracat analiz raporu hazırla.`
+                        role: "user", 
+                        content: `${ulke} menşeli ${urun} için detaylı gümrük raporu hazırla.` 
                     }
-                ]
+                ],
+                temperature: 0.2 // Düşük sıcaklık = Daha düzgün Türkçe
             })
         });
 
         const data = await res.json();
         const rapor = data.choices[0].message.content;
-
         document.getElementById('raporIcerik').innerHTML = rapor.replace(/\n/g, "<br>");
         document.getElementById('sonuc').style.display = 'block';
 
         const { data: { user } } = await _supabase.auth.getUser();
-        if(user) {
-            await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
-        }
-
-    } catch (e) {
-        alert("Hata oluştu.");
-    } finally {
-        btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR";
-        btn.disabled = false;
-    }
+        if(user) await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
+    } catch (e) { alert("Hata oluştu."); }
+    finally { btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR"; btn.disabled = false; }
 }
 </script>
 </body>
