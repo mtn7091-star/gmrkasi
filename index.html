@@ -1,27 +1,37 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// 1. AYARLAR
+// 1. AYARLAR - Değişkenleri global tanımlıyoruz
 const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let groqKey = ""; 
 
-// 2. ANAHTARI KASADAN GÜVENLİ ŞEKİLDE ÇEK
+// 2. ANAHTARI VERİTABANINDAN ÇEK
 async function groqKeyGetir() {
     try {
-        const { data } = await _supabase
+        const { data, error } = await _supabase
             .from('site_ayarlari')
             .select('anahtar_degeri')
             .eq('anahtar_adi', 'groq_api_key')
             .single();
-        if (data) groqKey = data.anahtar_degeri;
-    } catch (e) { console.error("Anahtar çekilemedi"); }
+        
+        if (data) {
+            groqKey = data.anahtar_degeri;
+            console.log("✅ Anahtar başarıyla çekildi.");
+        } else if (error) {
+            console.error("❌ Veritabanı Hatası:", error.message);
+        }
+    } catch (e) { 
+        console.error("❌ Beklenmedik Hata:", e); 
+    }
 }
 
+// Sayfa yüklenince anahtarı al
 window.onload = async () => {
     await groqKeyGetir();
+    // Eğer varsa checkUser() fonksiyonunu buraya ekleyebilirsin
 };
 
 // 3. ANINDA SORGULA
@@ -31,45 +41,10 @@ async function freeAnaliz() {
     const btn = document.getElementById('freeBtn');
 
     if(!groqKey) await groqKeyGetir();
-    if(!urun || !ulke) return alert("Boş bırakmayın.");
+    if(!urun || !ulke) return alert("Lütfen ürün ve ülke bilgilerini girin.");
 
-    btn.innerText = "SORGULANIYOR..."; btn.disabled = true;
-
-    try {
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${groqKey}`, // Artık değişkenle geliyor
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: "Türk gümrük müşavirisin. Sadece Türkçe ve detaylı cevap ver." },
-                    { role: "user", content: `${ulke} menşeli ${urun} için analiz yap.` }
-                ],
-                temperature: 0.6,
-                max_tokens: 1024
-            })
-        });
-
-        const data = await res.json();
-        const rapor = data.choices[0].message.content;
-        document.getElementById('freeRapor').innerHTML = "<b>Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
-        document.getElementById('freeSonuc').classList.remove('hidden');
-
-    } catch (e) { alert("Hata!"); }
-    finally { btn.innerText = "ANINDA SORGULA"; btn.disabled = false; }
-}
-
-// 4. TAM ANALİZ (DETAYLI)
-async function analizVeKaydet() {
-    const urun = document.getElementById('urun').value;
-    const ulke = document.getElementById('ulke').value;
-    const btn = document.getElementById('analizBtn');
-
-    if(!groqKey) await groqKeyGetir();
-    btn.innerText = "GENİŞ RAPOR HAZIRLANIYOR..."; btn.disabled = true;
+    btn.innerText = "SORGULANIYOR..."; 
+    btn.disabled = true;
 
     try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -81,17 +56,53 @@ async function analizVeKaydet() {
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
-                    { 
-                        role: "system", 
-                        content: "Gümrük müşaviri olarak profesyonel, maddeler halinde ve Gemini kalitesinde uzun raporlar hazırla. Sadece Türkçe kullan."
-                    },
-                    { 
-                        role: "user", 
-                        content: `${ulke} menşeli ${urun} ürünü için; vergiler, belgeler ve prosedürler dahil detaylı gümrük raporu yaz.`
-                    }
+                    { role: "system", content: "Sen profesyonel bir Türk gümrük müşavirisin. Sadece Türkçe ve akıcı bir dille cevap ver." },
+                    { role: "user", content: `${ulke} menşeli ${urun} için çok kısa bir gümrük ön analizi yap.` }
+                ],
+                temperature: 0.5
+            })
+        });
+
+        const data = await res.json();
+        const rapor = data.choices[0].message.content;
+        document.getElementById('freeRapor').innerHTML = "<b>Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
+        document.getElementById('freeSonuc').classList.remove('hidden');
+
+    } catch (e) { 
+        alert("Bağlantı hatası!"); 
+    } finally { 
+        btn.innerText = "ANINDA SORGULA"; 
+        btn.disabled = false; 
+    }
+}
+
+// 4. TAM ANALİZ RAPORU
+async function analizVeKaydet() {
+    const urun = document.getElementById('urun').value;
+    const ulke = document.getElementById('ulke').value;
+    const btn = document.getElementById('analizBtn');
+
+    if(!groqKey) await groqKeyGetir();
+    if(!urun || !ulke) return alert("Eksik bilgi!");
+
+    btn.innerText = "DETAYLI ANALİZ HAZIRLANIYOR..."; 
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${groqKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    { role: "system", content: "Gümrük müşaviri olarak profesyonel, maddeler halinde ve çok detaylı uzun bir Türkçe rapor hazırla." },
+                    { role: "user", content: `${ulke} menşeli ${urun} ürünü için vergiler, belgeler ve prosedürler dahil tam analiz yaz.` }
                 ],
                 temperature: 0.7,
-                max_tokens: 2048 // Raporun uzun olması için
+                max_tokens: 2048
             })
         });
 
@@ -102,9 +113,15 @@ async function analizVeKaydet() {
         document.getElementById('sonuc').style.display = 'block';
 
         const { data: { user } } = await _supabase.auth.getUser();
-        if(user) await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
+        if(user) {
+            await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
+        }
 
-    } catch (e) { alert("Sistem hatası."); }
-    finally { btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR"; btn.disabled = false; }
+    } catch (e) {
+        alert("Rapor hazırlanırken hata oluştu.");
+    } finally {
+        btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR";
+        btn.disabled = false;
+    }
 }
 </script>
