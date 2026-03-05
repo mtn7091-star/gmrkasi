@@ -74,72 +74,64 @@ let geminiKey = "";
 // 2. ANAHTARI KASADAN ÇEKME
 async function keyiVeritabanindanGetir() {
     try {
-        const { data, error } = await _supabase
+        const { data } = await _supabase
             .from('site_ayarlari')
             .select('anahtar_degeri')
             .eq('anahtar_adi', 'gemini_api_key')
             .single();
-        if (data) {
-            geminiKey = data.anahtar_degeri;
-        }
-    } catch (e) { 
-        console.error("Anahtar yüklenemedi:", e); 
-    }
+        if (data) geminiKey = data.anahtar_degeri;
+    } catch (e) { console.error("Anahtar yüklenemedi"); }
 }
 
-// 3. SAYFA AÇILDIĞINDA ÇALIŞACAKLAR
 window.onload = async () => {
     await keyiVeritabanindanGetir();
-    if (typeof checkUser === "function") checkUser(); // Eğer checkUser fonksiyonun varsa çalıştırır
+    if (typeof checkUser === "function") checkUser();
 };
 
-// 4. ANINDA SORGULA (ÜYELİKSİZ - 2.0 FLASH MODELİ)
+// 3. ANINDA SORGULA (1.5 PRO MODELİ)
 async function freeAnaliz() {
     const urun = document.getElementById('freeUrun').value;
     const ulke = document.getElementById('freeUlke').value;
     const btn = document.getElementById('freeBtn');
 
     if(!geminiKey) await keyiVeritabanindanGetir();
-    if(!urun || !ulke) return alert("Lütfen ürün ve ülke bilgilerini girin.");
+    if(!urun || !ulke) return alert("Lütfen ürün ve ülke girin.");
 
-    btn.innerText = "SORGULANIYOR..."; 
+    btn.innerText = "PRO ANALİZ YAPILIYOR..."; 
     btn.disabled = true;
 
     try {
-        // v1beta ve gemini-2.0-flash-exp (En güncel sürüm)
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+        // v1beta ve gemini-1.5-pro (En zeki model yolu)
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`, {
             method: "POST", 
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                contents: [{ parts: [{ text: `${ulke} menşeli ${urun} ürünü için çok kısa bir gümrük ön analizi yap.` }] }] 
+                contents: [{ parts: [{ text: `${ulke} menşeli ${urun} ürünü gümrük süreçleri hakkında 2 cümlelik uzman görüşü ver.` }] }] 
             })
         });
 
         const data = await res.json();
 
-        // Google hata döndürürse (undefined hatası almamak için)
         if (data.error) {
-            alert("Google Hatası: " + data.error.message);
+            alert("Google Pro Hatası: " + data.error.message);
             return;
         }
 
         if (data.candidates && data.candidates[0]) {
             const rapor = data.candidates[0].content.parts[0].text;
-            document.getElementById('freeRapor').innerHTML = "<b>Ön Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
+            document.getElementById('freeRapor').innerHTML = "<b>Uzman Görüşü (1.5 Pro):</b><br>" + rapor.replace(/\n/g, "<br>");
             document.getElementById('freeSonuc').classList.remove('hidden');
-        } else {
-            alert("Cevap alınamadı, API anahtarını veya model ismini kontrol et.");
         }
 
     } catch (e) { 
-        alert("Bağlantı hatası: " + e.message); 
+        alert("Sistem meşgul, lütfen bekleyin."); 
     } finally { 
         btn.innerText = "ANINDA SORGULA"; 
         btn.disabled = false; 
     }
 }
 
-// 5. TAM ANALİZ RAPORU (ÜYELİKLİ - 2.0 FLASH MODELİ)
+// 4. TAM ANALİZ (1.5 PRO MODELİ)
 async function analizVeKaydet() {
     const urun = document.getElementById('urun').value;
     const ulke = document.getElementById('ulke').value;
@@ -148,15 +140,15 @@ async function analizVeKaydet() {
     if(!geminiKey) await keyiVeritabanindanGetir();
     if(!urun || !ulke) return alert("Eksik bilgi!");
 
-    btn.innerText = "ANALİZ YAPILIYOR..."; 
+    btn.innerText = "DETAYLI PRO ANALİZ HAZIRLANIYOR..."; 
     btn.disabled = true;
 
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`, {
             method: "POST", 
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                contents: [{ parts: [{ text: `Gümrük müşaviri olarak ${ulke} menşeli ${urun} için detaylı analiz yap.` }] }] 
+                contents: [{ parts: [{ text: `Gümrük müşaviri olarak ${ulke} menşeli ${urun} için profesyonel ve detaylı bir rapor hazırla.` }] }] 
             })
         });
 
@@ -165,11 +157,9 @@ async function analizVeKaydet() {
 
         const rapor = data.candidates[0].content.parts[0].text;
         
-        // Ekrana Yazdır
         document.getElementById('raporIcerik').innerHTML = rapor.replace(/\n/g, "<br>");
         document.getElementById('sonuc').style.display = 'block';
 
-        // Veritabanına Kaydet (Giriş yapılmışsa)
         const { data: { user } } = await _supabase.auth.getUser();
         if(user) {
             await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
@@ -177,13 +167,12 @@ async function analizVeKaydet() {
         }
 
     } catch (e) {
-        alert("Hata: " + e.message);
+        alert("Pro Hata: " + e.message);
     } finally {
         btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR";
         btn.disabled = false;
     }
 }
-</script>
 </script>
 </body>
 </html>
