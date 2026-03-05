@@ -3,151 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gümrük AI Pro | Hesaplama Motoru</title>
+    <title>Gümrük AI Pro | Kesintisiz Analiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
 
-    <nav class="bg-white border-b p-4 sticky top-0 z-50">
+    <nav class="bg-white border-b p-4 shadow-sm">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-blue-700">🚢 GÜMRÜK AI PRO + HESAPLAMA</h1>
-            <div id="krediBox" class="text-sm font-bold bg-blue-50 px-3 py-1 rounded-full text-blue-600">Kredi: 5/5</div>
+            <h1 class="text-xl font-bold text-blue-700">🚢 GÜMRÜK AI PRO</h1>
+            <div id="krediBox" class="text-sm font-bold bg-blue-50 px-3 py-1 rounded-full text-blue-600 font-mono">Kredi: 5/5</div>
         </div>
     </nav>
 
     <main class="container mx-auto max-w-6xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         <div class="lg:col-span-4 space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                <h2 class="font-bold mb-4 flex items-center gap-2">🔍 Mevzuat Analizi</h2>
-                <input type="text" id="urun" placeholder="Ürün (Örn: Güneş Paneli)" class="w-full p-3 bg-slate-50 border rounded-xl mb-3 outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="text" id="ulke" placeholder="Ülke (Örn: Almanya)" class="w-full p-3 bg-slate-50 border rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="fullAnaliz()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-blue-600 transition-all">ANALİZ ET</button>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 bg-blue-50/30">
-                <h2 class="font-bold mb-4 text-blue-800 flex items-center gap-2">🧮 Maliyet Hesaplama</h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-xs font-bold text-slate-500">MAL BEDELİ ($/€)</label>
-                        <input type="number" id="malBedeli" value="1000" class="w-full p-2 border rounded-lg">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-xs font-bold text-slate-500">G. VERGİSİ (%)</label>
-                            <input type="number" id="gVergiOran" value="10" class="w-full p-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500">KDV (%)</label>
-                            <input type="number" id="kdvOran" value="20" class="w-full p-2 border rounded-lg">
-                        </div>
-                    </div>
-                    <button onclick="hesapla()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700">HESAPLA</button>
-                    
-                    <div id="hesapSonuc" class="hidden mt-4 p-3 bg-white border rounded-xl space-y-2 text-sm">
-                        <div class="flex justify-between"><span>Gümrük Vergisi:</span><span id="resGV" class="font-bold"></span></div>
-                        <div class="flex justify-between"><span>KDV Tutarı:</span><span id="resKDV" class="font-bold"></span></div>
-                        <hr>
-                        <div class="flex justify-between text-blue-700 font-bold"><span>TOPLAM MALİYET:</span><span id="resTotal"></span></div>
-                    </div>
-                </div>
+                <h2 class="font-bold mb-4 italic text-slate-500">Analiz Verileri</h2>
+                <input type="text" id="urunInput" placeholder="Ürün (Örn: Gitar)" class="w-full p-3 bg-slate-50 border rounded-xl mb-3 outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="ulkeInput" placeholder="Ülke (Örn: Çin)" class="w-full p-3 bg-slate-50 border rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="fullAnaliz()" id="anaButon" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-blue-600 transition-all shadow-lg">ANALİZ ET</button>
             </div>
         </div>
 
-        <div class="lg:col-span-8 space-y-6">
-            <div id="loading" class="hidden text-center p-20 bg-white rounded-2xl border border-dashed">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p class="mt-4 text-slate-500">Mevzuat dosyaları inceleniyor...</p>
+        <div class="lg:col-span-8">
+            <div id="loading" class="hidden text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                <p class="animate-pulse text-blue-600 font-bold">Yapay Zeka Raporu Hazırlıyor...</p>
             </div>
 
-            <div id="sonucAlani" class="hidden bg-white p-8 rounded-2xl shadow-sm border">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 id="raporBaslik" class="text-2xl font-bold"></h2>
-                    <button onclick="pdfIndir()" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm">PDF AL</button>
+            <div id="sonucAlani" class="hidden bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 id="raporBaslik" class="text-2xl font-bold text-slate-800"></h2>
+                    <button onclick="pdfIndir()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-bold shadow-sm transition-colors">PDF İNDİR</button>
                 </div>
-                <div id="gtipBadge" class="mb-4 inline-block bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-xs font-bold"></div>
-                <div id="raporIcerik" class="prose max-w-none text-slate-700"></div>
+                <div id="raporIcerik" class="text-slate-700 leading-relaxed whitespace-pre-line"></div>
             </div>
         </div>
     </main>
 
     <script>
-        const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
-        let _supabase, groqKey = "";
-        let kredi = localStorage.getItem('gumrukKredi') || 5;
+    // 1. AYARLAR
+    const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
+    let _supabase, groqKey = "";
+    let kredi = localStorage.getItem('gumrukKredi') || 5;
 
-        async function init() {
+    // 2. SİSTEMİ BAŞLAT
+    async function init() {
+        try {
             _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             const { data } = await _supabase.from('site_ayarlari').select('anahtar_degeri').eq('anahtar_adi', 'groq_api_key').maybeSingle();
-            if (data) groqKey = data.anahtar_degeri;
+            if (data) {
+                groqKey = data.anahtar_degeri;
+                console.log("Bağlantı Başarılı ✅");
+            }
+        } catch (e) { console.error("Başlatma hatası:", e); }
+        document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
+    }
+
+    // 3. ANA ANALİZ FONKSİYONU
+    async function fullAnaliz() {
+        const urun = document.getElementById('urunInput').value;
+        const ulke = document.getElementById('ulkeInput').value;
+        const btn = document.getElementById('anaButon');
+
+        if (!urun || !ulke) return alert("Lütfen ürün ve ülke girin.");
+        if (!groqKey) return alert("Sistem henüz hazır değil, lütfen 2 saniye bekleyip tekrar basın.");
+        if (kredi <= 0) return alert("Bugünlük limitin doldu başkan.");
+
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('sonucAlani').classList.add('hidden');
+        btn.disabled = true;
+        btn.innerText = "İŞLENİYOR...";
+
+        try {
+            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: "Sen kıdemli bir Türk gümrük müşavirisin. Detaylı, profesyonel ve tamamen Türkçe bir ithalat raporu yaz." },
+                        { role: "user", content: `${ulke} menşeli ${urun} için gümrük vergileri ve prosedürleri anlat.` }
+                    ],
+                    temperature: 0.5
+                })
+            });
+            const data = await res.json();
+            const rapor = data.choices[0].message.content;
+
+            document.getElementById('raporIcerik').innerText = rapor;
+            document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " ANALİZİ";
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('sonucAlani').classList.remove('hidden');
+
+            kredi--;
+            localStorage.setItem('gumrukKredi', kredi);
             document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
+
+        } catch (e) { 
+            alert("Groq bağlantı hatası!"); 
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "ANALİZ ET";
         }
+    }
 
-        // HESAPLAMA MOTORU
-        function hesapla() {
-            const bedel = parseFloat(document.getElementById('malBedeli').value);
-            const gvOran = parseFloat(document.getElementById('gVergiOran').value) / 100;
-            const kdvOran = parseFloat(document.getElementById('kdvOran').value) / 100;
+    // 4. ÇOK SAYFALI PDF FONKSİYONU
+    function pdfIndir() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const icerik = document.getElementById('raporIcerik').innerText;
+        const baslik = document.getElementById('raporBaslik').innerText;
+        
+        const temizText = icerik
+            .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
+            .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
+            .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
+            .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
 
-            const gvTutar = bedel * gvOran; // Gümrük Vergisi
-            const kdvMatrah = bedel + gvTutar; // KDV, mal bedeli + gümrük vergisi üzerinden hesaplanır
-            const kdvTutar = kdvMatrah * kdvOran;
-            const toplam = bedel + gvTutar + kdvTutar;
+        doc.setFont("helvetica", "bold");
+        doc.text("GUMRUK ANALIZ RAPORU", 10, 15);
+        doc.line(10, 18, 200, 18);
+        
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        
+        const lines = doc.splitTextToSize(temizText, 180);
+        let y = 25;
 
-            document.getElementById('resGV').innerText = gvTutar.toFixed(2) + " $";
-            document.getElementById('resKDV').innerText = kdvTutar.toFixed(2) + " $";
-            document.getElementById('resTotal').innerText = toplam.toFixed(2) + " $";
-            document.getElementById('hesapSonuc').classList.remove('hidden');
-        }
+        lines.forEach(line => {
+            if (y > 280) { doc.addPage(); y = 20; }
+            doc.text(line, 10, y);
+            y += 7;
+        });
 
-        async function pdfIndir() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const icerik = document.getElementById('raporIcerik').innerText;
-    const baslik = document.getElementById('raporBaslik').innerText;
-    
-    // 1. Türkçe Karakterleri "PDF Dostu" Yap
-    const temizText = icerik
-        .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
-        .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
-        .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
-        .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
+        doc.save(baslik + ".pdf");
+    }
 
-    // 2. Başlık ve Çizgi
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("GUMRUK ANALIZ RAPORU", 10, 15);
-    doc.setFontSize(12);
-    doc.text(baslik.toUpperCase(), 10, 25);
-    doc.line(10, 28, 200, 28);
-    
-    // 3. İçerik ve Çoklu Sayfa Döngüsü
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    
-    const lines = doc.splitTextToSize(temizText, 180);
-    let cursorY = 35; // Yazmaya başlanacak dikey konum
-
-    lines.forEach(line => {
-        // Eğer sayfa bittiyse (280mm'yi geçtiyse) yeni sayfa ekle
-        if (cursorY > 280) {
-            doc.addPage();
-            cursorY = 20; // Yeni sayfada tekrar tepeden başla
-        }
-        doc.text(line, 10, cursorY);
-        cursorY += 7; // Bir sonraki satıra geç
-    });
-
-    doc.save(`${baslik.replace(/\s+/g, '_')}_Analiz.pdf`);
-}
-        init();
+    init();
     </script>
 </body>
 </html>
