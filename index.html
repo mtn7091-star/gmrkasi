@@ -61,61 +61,69 @@
 </div>
 
 <script>
-<script>
-    // 1. ANAHTARI KASADAN ÇEKME (Ücretsiz Sorgu İçin)
-    async function keyiVeritabanindanGetir() {
-        try {
-            const { data, error } = await _supabase
-                .from('site_ayarlari')
-                .select('anahtar_degeri')
-                .eq('anahtar_adi', 'gemini_api_key')
-                .single();
-            if (data) geminiKey = data.anahtar_degeri;
-        } catch (e) { console.error("Kasa hatası:", e); }
-    }
+// 1. BAĞLANTI AYARLARI
+const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. ÜCRETSİZ SORGULAMA (HATA KORUMALI)
-    async function freeAnaliz() {
-        const urun = document.getElementById('freeUrun').value;
-        const ulke = document.getElementById('freeUlke').value;
-        const btn = document.getElementById('freeBtn');
-        
-        if(!geminiKey) await keyiVeritabanindanGetir();
-        if(!urun || !ulke) return alert("Eksik bilgi!");
+let geminiKey = ""; 
 
-        btn.innerText = "LÜTFEN BEKLEYİN..."; btn.disabled = true;
-        try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: `${ulke} menşeli ${urun} için kısa gümrük bilgisi ver.` }] }] })
-            });
-            
-            const data = await res.json();
+// 2. ANAHTARI KASADAN GETİR
+async function keyiVeritabanindanGetir() {
+    try {
+        const { data } = await _supabase.from('site_ayarlari').select('anahtar_degeri').eq('anahtar_adi', 'gemini_api_key').single();
+        if (data) geminiKey = data.anahtar_degeri;
+    } catch (e) { console.error("Anahtar çekilemedi"); }
+}
 
-            // undefined hatasını engelleyen kontrol:
-            if (data.error) {
-                alert("Hata: " + data.error.message);
-                return;
-            }
-            if (!data.candidates) {
-                alert("Google şu an cevap vermiyor, kotayı kontrol et.");
-                return;
-            }
+// 3. SAYFA AÇILINCA ÇALIŞ
+window.onload = async () => {
+    await keyiVeritabanindanGetir();
+    // checkUser() fonksiyonun varsa burada kalsın
+};
 
-            const rapor = data.candidates[0].content.parts[0].text;
-            document.getElementById('freeRapor').innerHTML = rapor.replace(/\n/g, "<br>");
-            document.getElementById('freeSonuc').classList.remove('hidden');
-        } catch (e) { 
-            alert("Sistem meşgul, az sonra tekrar dene."); 
-        } finally { 
-            btn.innerText = "ANINDA SORGULA"; btn.disabled = false; 
+// 4. ANINDA SORGULA (TAMİR EDİLMİŞ HALİ)
+async function freeAnaliz() {
+    const urun = document.getElementById('freeUrun').value;
+    const ulke = document.getElementById('freeUlke').value;
+    const btn = document.getElementById('freeBtn');
+
+    if(!geminiKey) await keyiVeritabanindanGetir();
+    if(!urun || !ulke) return alert("Lütfen boş bırakmayın.");
+
+    btn.innerText = "SORGULANIYOR..."; 
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: `${ulke} menşeli ${urun} için çok kısa gümrük bilgisi ver.` }] }] })
+        });
+
+        const data = await res.json();
+
+        // GOOGLE HATA VERİRSE BURADA YAKALIYORUZ (undefined hatası vermez)
+        if (data.error) {
+            alert("Google Kaynaklı Hata: " + data.error.message);
+            return;
         }
-    }
-</script>
 
-</body>
-</html>
+        if (data.candidates && data.candidates[0]) {
+            const rapor = data.candidates[0].content.parts[0].text;
+            document.getElementById('freeRapor').innerHTML = "<b>Ön Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
+            document.getElementById('freeSonuc').classList.remove('hidden');
+        } else {
+            alert("Google şu an boş cevap döndü. Lütfen tekrar dene.");
+        }
+
+    } catch (e) { 
+        alert("Bağlantı hatası oluştu."); 
+    } finally { 
+        btn.innerText = "ANINDA SORGULA"; 
+        btn.disabled = false; 
+    }
+}
 </script>
 </body>
 </html>
