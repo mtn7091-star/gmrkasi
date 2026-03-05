@@ -1,65 +1,3 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gümrük Müşaviri AI</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #0f172a; color: white; }
-        .hidden { display: none; }
-        .card { background-color: #1e293b; border: none; color: white; margin-bottom: 20px; }
-        .btn-primary { background-color: #3b82f6; border: none; }
-        .text-info-bright { color: #60a5fa; font-weight: bold; }
-    </style>
-</head>
-<body>
-
-<div class="container py-5">
-    <h2 class="text-center mb-4">Gümrük Analiz Sistemi</h2>
-
-    <div class="card p-4">
-        <h4>Hızlı Gümrük Sorgulama (Üyeliksiz)</h4>
-        <div class="row g-3">
-            <div class="col-md-5"><input type="text" id="freeUrun" class="form-control" placeholder="Ürün adı (Örn: Güneş Paneli)"></div>
-            <div class="col-md-5"><input type="text" id="freeUlke" class="form-control" placeholder="Menşei Ülke"></div>
-            <div class="col-md-2"><button id="freeBtn" onclick="freeAnaliz()" class="btn btn-warning w-100">ANINDA SORGULA</button></div>
-        </div>
-        <div id="freeSonuc" class="mt-3 p-3 bg-dark rounded hidden">
-            <div id="freeRapor"></div>
-        </div>
-    </div>
-
-    <div id="authSection" class="card p-4">
-        <h4>Sisteme Giriş Yap</h4>
-        <input type="email" id="email" class="form-control mb-2" placeholder="Email">
-        <input type="password" id="password" class="form-control mb-2" placeholder="Şifre">
-        <button onclick="handleLogin()" class="btn btn-primary">Giriş Yap</button>
-    </div>
-
-    <div id="appSection" class="hidden">
-        <div class="card p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span id="userMail" class="badge bg-info"></span>
-                <button onclick="handleLogout()" class="btn btn-danger btn-sm">Çıkış Yap</button>
-            </div>
-            <h4>Detaylı Gümrük Analizi</h4>
-            <input type="text" id="urun" class="form-control mb-2" placeholder="Ürün adı">
-            <input type="text" id="ulke" class="form-control mb-2" placeholder="Ülke">
-            <button id="analizBtn" onclick="analizVeKaydet()" class="btn btn-success w-100">TAM ANALİZ RAPORU OLUŞTUR</button>
-        </div>
-
-        <div id="sonuc" class="card p-4 hidden">
-            <h4>Analiz Sonucu</h4>
-            <div id="raporIcerik"></div>
-        </div>
-
-        <h4 class="mt-4">Geçmiş Aramalarım</h4>
-        <div id="gecmisListesi" class="row"></div>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -67,35 +5,51 @@
 const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const GROQ_API_KEY = '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';
 
-// 2. ANINDA SORGULA (TAMİR EDİLMİŞ)
+let groqKey = ""; 
+
+// 2. ANAHTARI KASADAN GÜVENLİ ŞEKİLDE ÇEK
+async function groqKeyGetir() {
+    try {
+        const { data } = await _supabase
+            .from('site_ayarlari')
+            .select('anahtar_degeri')
+            .eq('anahtar_adi', 'groq_api_key')
+            .single();
+        if (data) groqKey = data.anahtar_degeri;
+    } catch (e) { console.error("Anahtar çekilemedi"); }
+}
+
+window.onload = async () => {
+    await groqKeyGetir();
+};
+
+// 3. ANINDA SORGULA
 async function freeAnaliz() {
     const urun = document.getElementById('freeUrun').value;
     const ulke = document.getElementById('freeUlke').value;
     const btn = document.getElementById('freeBtn');
 
+    if(!groqKey) await groqKeyGetir();
     if(!urun || !ulke) return alert("Boş bırakmayın.");
+
     btn.innerText = "SORGULANIYOR..."; btn.disabled = true;
 
     try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+            headers: {
+                'Authorization': `Bearer ${groqKey}`, // Artık değişkenle geliyor
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
-                    {
-                        role: "system", 
-                        content: "Sen Türkiye'de çalışan bir gümrük müşavirisin. Sadece TÜRKÇE konuş. Çince veya başka dillerden karakter kullanman KESİNLİKLE YASAKTIR. Yanıtına doğrudan Türkçe başla."
-                    },
-                    {
-                        role: "user", 
-                        content: `${ulke} menşeli ${urun} için gümrük ön analizi yap.` 
-                    }
+                    { role: "system", content: "Türk gümrük müşavirisin. Sadece Türkçe ve detaylı cevap ver." },
+                    { role: "user", content: `${ulke} menşeli ${urun} için analiz yap.` }
                 ],
-                temperature: 0.1, // Yaratıcılığı kıstık, saçmalamayı engeller
-                top_p: 1
+                temperature: 0.6,
+                max_tokens: 1024
             })
         });
 
@@ -103,49 +57,54 @@ async function freeAnaliz() {
         const rapor = data.choices[0].message.content;
         document.getElementById('freeRapor').innerHTML = "<b>Analiz:</b><br>" + rapor.replace(/\n/g, "<br>");
         document.getElementById('freeSonuc').classList.remove('hidden');
+
     } catch (e) { alert("Hata!"); }
     finally { btn.innerText = "ANINDA SORGULA"; btn.disabled = false; }
 }
 
-// 3. TAM ANALİZ (TAMİR EDİLMİŞ)
+// 4. TAM ANALİZ (DETAYLI)
 async function analizVeKaydet() {
     const urun = document.getElementById('urun').value;
     const ulke = document.getElementById('ulke').value;
     const btn = document.getElementById('analizBtn');
-    if(!urun || !ulke) return alert("Eksik bilgi!");
 
-    btn.innerText = "RAPOR HAZIRLANIYOR..."; btn.disabled = true;
+    if(!groqKey) await groqKeyGetir();
+    btn.innerText = "GENİŞ RAPOR HAZIRLANIYOR..."; btn.disabled = true;
 
     try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+            headers: {
+                'Authorization': `Bearer ${groqKey}`,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
-                    {
+                    { 
                         role: "system", 
-                        content: "Sadece Türkçe yanıt veren, profesyonel bir gümrük uzmanısın. Başka dil kullanma."
+                        content: "Gümrük müşaviri olarak profesyonel, maddeler halinde ve Gemini kalitesinde uzun raporlar hazırla. Sadece Türkçe kullan."
                     },
-                    {
+                    { 
                         role: "user", 
-                        content: `${ulke} menşeli ${urun} için detaylı gümrük raporu hazırla.` 
+                        content: `${ulke} menşeli ${urun} ürünü için; vergiler, belgeler ve prosedürler dahil detaylı gümrük raporu yaz.`
                     }
                 ],
-                temperature: 0.2 // Düşük sıcaklık = Daha düzgün Türkçe
+                temperature: 0.7,
+                max_tokens: 2048 // Raporun uzun olması için
             })
         });
 
         const data = await res.json();
         const rapor = data.choices[0].message.content;
+
         document.getElementById('raporIcerik').innerHTML = rapor.replace(/\n/g, "<br>");
         document.getElementById('sonuc').style.display = 'block';
 
         const { data: { user } } = await _supabase.auth.getUser();
         if(user) await _supabase.from('arama_gecmisi').insert([{ user_id: user.id, urun, ulke, rapor }]);
-    } catch (e) { alert("Hata oluştu."); }
+
+    } catch (e) { alert("Sistem hatası."); }
     finally { btn.innerText = "TAM ANALİZ RAPORU OLUŞTUR"; btn.disabled = false; }
 }
 </script>
-</body>
-</html>
