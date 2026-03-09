@@ -77,6 +77,7 @@
                     <div>
                         <h2 id="raporBaslik" class="text-2xl font-black text-slate-800 tracking-tight"></h2>
 <div id="riskMetre" class="hidden mb-4 p-3 rounded-lg flex items-center gap-3 border">
+<div id="gtipAlani" class="mb-2 text-blue-700 font-mono text-lg font-bold"></div>
     <div id="riskLamba" class="w-4 h-4 rounded-full animate-pulse"></div>
     <span id="riskMesaj" class="font-bold uppercase tracking-wide text-sm"></span>
 </div>
@@ -162,6 +163,9 @@ async function fullAnaliz() {
                         role: "system", 
                         content: `SEN BİR GÜMRÜK DEDEKTİFİSİN VE ŞU AN 2026 YILINDAYIZ. 
                         Kendi eski eğitim verilerini unut, sadece internetten gelen veriye odaklan.
+                        `SEN BİR GÜMRÜK VE TARİFE UZMANISIN. 
+Analiz ettiğin ürünün muhtemel 6'lı veya 12'li GTİP kodlarını (HS Codes) mutlaka belirt. 
+Kodu verirken "Tahmini GTİP: XXXX.XX" formatını kullan.`
                         
                         KRİTİK GÖREVİN: İnternet verilerinde şu 4 "Kırmızı Bayrak"tan birini görürsen mutlaka raporla:
                         1. KISITLAMALAR: İkinci el olması, yaş sınırı, kota veya ithalat yasağı var mı?
@@ -186,6 +190,27 @@ async function fullAnaliz() {
 
         // Sonuçları Ekrana Bas
         document.getElementById('raporIcerik').innerText = rapor;
+// 1. Önce raporu ekrana yazdırıyoruz
+        document.getElementById('raporIcerik').innerText = rapor;
+
+        // 2. --- GTİP KODU YAKALAYICI (YENİ EKLEDİĞİMİZ) ---
+        const gtipMatch = rapor.match(/Tahmini GTİP:\s*([\d.]+)/i);
+        if (gtipMatch && gtipMatch[1]) {
+            document.getElementById('gtipAlani').innerText = "📌 Tahmini GTİP: " + gtipMatch[1];
+        } else {
+            document.getElementById('gtipAlani').innerText = ""; 
+        }
+
+        // 3. --- VERGİ AKTARICI (ZATEN VARDI) ---
+        const gvMatch = rapor.match(/Gümrük Vergisi:\s*%?\s*(\d+)/i);
+        const kdvMatch = rapor.match(/KDV:\s*%?\s*(\d+)/i);
+
+        if (gvMatch && gvMatch[1]) {
+            document.getElementById('gVergiOran').value = gvMatch[1];
+        }
+        if (kdvMatch && kdvMatch[1]) {
+            document.getElementById('kdvOran').value = kdvMatch[1];
+        }
 // --- RİSK METRE ANALİZİ ---
         const riskMetre = document.getElementById('riskMetre');
         const riskLamba = document.getElementById('riskLamba');
