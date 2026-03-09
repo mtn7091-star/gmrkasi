@@ -108,33 +108,35 @@ async function fullAnaliz() {
     const btn = document.getElementById('anaButon');
 
     if (!urun || !ulke) return alert("Lütfen ürün ve ülke girin.");
-    if (!groqKey || !tavilyKey) return alert("Sistem henüz hazır değil, lütfen 2 saniye sonra tekrar deneyin.");
+    if (!groqKey || !tavilyKey) return alert("Sistem anahtarları yükleniyor, lütfen bekleyin.");
     if (kredi <= 0) return alert("Günlük limitin doldu başkan.");
 
-    // Arayüzü Yükleniyor Moduna Sok
+    // Arayüz Hazırlığı
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('sonucAlani').classList.add('hidden');
     btn.disabled = true;
-    btn.innerText = "GÜNCEL MEVZUAT TARANIYOR...";
+    btn.innerText = "GÜNCEL MEVZUAT TARANIYOR (2026)...";
 
     try {
-        // --- ADIM 1: TAVILY İLE İNTERNETİ TARA ---
+        // --- ADIM 1: TAVILY İLE NOKTA ATIŞI İNTERNET ARAMASI ---
+        // Sorguyu "Resmi Gazete" ve "2026" odaklı güncelledik
         const searchRes = await fetch('https://api.tavily.com/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 api_key: tavilyKey,
-                query: `${ulke} menseli ${urun} ithalat gumruk vergisi oranlari ve mevzuati 2025 resmi gazete`,
+                query: `T.C. Ticaret Bakanlığı ${urun} ${ulke} menşeli ithalat gümrük vergisi ve İGV oranları Mart 2026 resmi gazete tebliğ`,
                 search_depth: "advanced",
-                max_results: 5
+                max_results: 6,
+                include_answer: true
             })
         });
         const searchData = await searchRes.json();
-        const internetBilgisi = searchData.results?.map(r => r.content).join("\n\n") || "Guncel veri bulunamadi.";
+        const internetBilgisi = searchData.results?.map(r => r.content).join("\n\n") || "Güncel internet verisine ulaşılamadı.";
 
-        btn.innerText = "GÜMRÜK RAPORU HAZIRLANIRKEN BEKLEYİN...";
+        btn.innerText = "YAPAY ZEKA RAPORU YAZIYOR...";
 
-        // --- ADIM 2: GROQ İLE ANALİZ ET (GÜNCEL VERİ ODAKLI) ---
+        // --- ADIM 2: GROQ İLE ANALİZ (SERT TALİMATLI) ---
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
@@ -143,45 +145,44 @@ async function fullAnaliz() {
                 messages: [
                     { 
                         role: "system", 
-                        content: `SEN ÇOK TECRÜBELİ BİR GÜMRÜK MÜŞAVİRİSİN VE ŞU AN 2026 YILINDAYIZ. 
-                        KENDİ ESKİ EĞİTİM VERİLERİNDEKİ VERGİ ORANLARINI UNUT. 
-                        SADECE VE SADECE SANA ŞİMDİ GETİRDİĞİM İNTERNET VERİLERİNE GÖRE RAPOR HAZIRLA.
+                        content: `SEN UZMAN BİR GÜMRÜK MÜŞAVİRİSİN. ŞU AN 2026 YILINDAYIZ.
                         
-                        KRİTİK TALİMATLAR:
-                        1. Eğer internet bilgisinde 2024 veya 2025'te değişmiş bir vergi oranı varsa onu kullan.
-                        2. "İnternet verilerine göre..." gibi cümleler kurma, sanki o bilgi senin ana bilginmiş gibi rapor yaz.
-                        3. GTİP kodu tahminini ve güncel İGV (İlave Gümrük Vergisi) durumunu mutlaka belirt.
+                        KRİTİK KURALLAR:
+                        1. KDV ORANI ASLA %18 DEĞİLDİR. TÜRKİYE'DE GENEL KDV %20'DİR. RAPORDA %20 KULLAN.
+                        2. SADECE SANA VERİLEN İNTERNET VERİLERİNE ODAKLAN. ESKİ BİLGİLERİNİ KULLANMA.
+                        3. EĞER ÜRÜN ÇİN MENŞELİ İSE MUTLAKA "İLAVE GÜMRÜK VERGİSİ (İGV)" KONTROLÜ YAP.
+                        4. CEVABI PROFESYONEL BİR GÜMRÜK RAPORU FORMATINDA YAZ.
                         
-                        GÜNCEL İNTERNET VERİSİ:
+                        GÜNCEL İNTERNET VERİLERİ: 
                         ${internetBilgisi}` 
                     },
                     { 
                         role: "user", 
-                        content: `Türkiye'ye ithal edilecek ${ulke} menşeli ${urun} için en güncel gümrük vergisi, KDV ve ek mali yükümlülük raporunu hazırla.` 
+                        content: `${ulke} menşeli ${urun} için Mart 2026 itibariyle geçerli GTİP tahmini, Gümrük Vergisi, İGV ve KDV oranlarını içeren teknik rapor hazırla.` 
                     }
                 ],
-                temperature: 0.1 // Daha tutarlı ve veriye sadık olması için düşürdük.
+                temperature: 0.1 // Yaratıcılığı öldür, sadece gerçeklere odaklan
             })
         });
         
         const data = await res.json();
         const rapor = data.choices[0].message.content;
 
-        // Ekrana Yazdır
+        // Sonuçları Ekrana Bas
         document.getElementById('raporIcerik').innerText = rapor;
-        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " TEKNİK ANALİZ RAPORU";
-        document.getElementById('raporTarih').innerText = new Date().toLocaleString();
+        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " GÜNCEL ANALİZ RAPORU (2026)";
+        document.getElementById('raporTarih').innerText = "Rapor Tarihi: " + new Date().toLocaleString('tr-TR');
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('sonucAlani').classList.remove('hidden');
 
-        // Kredi Düşür
+        // Kredi İşlemi
         kredi--;
         localStorage.setItem('gumrukKredi', kredi);
         document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
 
     } catch (e) {
-        console.error(e);
-        alert("Bağlantı hatası! API anahtarlarını ve SQL kaydını kontrol et.");
+        console.error("Analiz Hatası:", e);
+        alert("Bağlantı hatası! Lütfen internetini veya API anahtarlarını kontrol et.");
     } finally {
         btn.disabled = false;
         btn.innerText = "ANALİZ ET";
