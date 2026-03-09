@@ -210,26 +210,89 @@ function pdfIndir() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const icerik = document.getElementById('raporIcerik').innerText;
+    const baslik = document.getElementById('raporBaslik').innerText;
+    const tarih = document.getElementById('raporTarih').innerText;
     
-    // Türkçe karakter temizleme
-    const temizText = icerik.replace(/[ıĞÜŞÖÇİğüşöç]/g, function(letter) {
-        const mapping = {'ı':'i','Ğ':'G','Ü':'U','Ş':'S','Ö':'O','Ç':'C','İ':'I','ğ':'g','ü':'u','ş':'s','ö':'o','ç':'c'};
-        return mapping[letter];
-    });
+    // Vergi verilerini çek
+    const gv = document.getElementById('resGV').innerText || "0";
+    const kdv = document.getElementById('resKDV').innerText || "0";
+    const toplam = document.getElementById('resTotal').innerText || "0";
 
+    // 1. Türkçe Karakter Temizleme (PDF Uyumu İçin)
+    const temizle = (text) => text
+        .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
+        .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
+        .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
+        .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
+
+    const temizText = temizle(icerik);
+    const temizBaslik = temizle(baslik);
+
+    // 2. Sayfa Tasarımı ve Header
+    doc.setFillColor(30, 58, 138); // Lacivert şerit
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text("GUMRUK ANALIZ RAPORU", 10, 15);
+    doc.setFontSize(22);
+    doc.text("GUMRUK AI PRO", 10, 20);
+    
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
+    doc.text("PROFESYONEL MEVZUAT VE ANALIZ RAPORU", 10, 30);
+    doc.text(tarih, 150, 30);
+
+    // 3. Vergi Özet Tablosu (Eğer hesaplama yapıldıysa)
+    if (toplam !== "0") {
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("TAHMINI MALIYET OZETI", 10, 55);
+        
+        doc.setDrawColor(200, 200, 200);
+        doc.line(10, 58, 200, 58);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Gumruk Vergisi: ${gv}`, 15, 65);
+        doc.text(`KDV Tutari: ${kdv}`, 15, 72);
+        doc.setFont("helvetica", "bold");
+        doc.text(`TOPLAM TAHMINI MALIYET: ${toplam}`, 15, 82);
+        
+        doc.line(10, 86, 200, 86);
+    }
+
+    // 4. Ana Rapor İçeriği (Çok Sayfalı)
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("TEKNIK ANALIZ DETAYLARI", 10, (toplam !== "0" ? 100 : 55));
     
-    const lines = doc.splitTextToSize(temizText, 180);
-    let y = 25;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const lines = doc.splitTextToSize(temizText, 185);
+    let y = (toplam !== "0" ? 110 : 65);
+
     lines.forEach(line => {
-        if (y > 280) { doc.addPage(); y = 20; }
+        if (y > 275) {
+            doc.addPage();
+            y = 20;
+        }
         doc.text(line, 10, y);
-        y += 6;
+        y += 6.5;
     });
-    doc.save("Gümrük_Teknik_Raporu.pdf");
+
+    // 5. Footer (Yasal Uyarı)
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Sayfa ${i} / ${pageCount}`, 100, 290, { align: "center" });
+        doc.text("Yasal Uyari: Bu rapor yapay zeka tarafindan uretilmistir. Resmi islemlerde musavir onayi gereklidir.", 105, 295, { align: "center" });
+    }
+
+    doc.save(`${temizBaslik}_Resmi_Analiz.pdf`);
 }
 
 // Sayfa açıldığında anahtarları yükle
