@@ -76,51 +76,65 @@
         </div>
     </main>
 
-    <script>
-    const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
-    let _supabase, groqKey = "";
-    let kredi = localStorage.getItem('gumrukKredi') || 5;
+<script>
+// 1. AYARLAR VE SUPABASE BAĞLANTISI
+const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
+let _supabase, groqKey = "", tavilyKey = "";
+let kredi = localStorage.getItem('gumrukKredi') || 5;
 
-    async function init() {
-        try {
-            _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const { data } = await _supabase.from('site_ayarlari').select('anahtar_degeri').eq('anahtar_adi', 'groq_api_key').maybeSingle();
-            if (data) groqKey = data.anahtar_degeri;
-        } catch (e) { console.error(e); }
-        document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
+// 2. SİSTEMİ BAŞLAT (SQL'DEN ANAHTARLARI ÇEKER)
+async function init() {
+    try {
+        _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const { data, error } = await _supabase.from('site_ayarlari').select('anahtar_adi, anahtar_degeri');
+        
+        if (data) {
+            groqKey = data.find(x => x.anahtar_adi === 'groq_api_key')?.anahtar_degeri?.trim();
+            tavilyKey = data.find(x => x.anahtar_adi === 'tavily_api_key')?.anahtar_degeri?.trim();
+            console.log("Sistem Hazır: Anahtarlar yüklendi ✅");
+        }
+        if (error) console.error("Anahtar çekme hatası:", error);
+    } catch (e) {
+        console.error("Başlatma hatası:", e);
     }
+    document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
+}
 
-    // VERGİ HESAPLAMA MOTORU
-    function hesapla() {
-        const bedel = parseFloat(document.getElementById('malBedeli').value);
-        const gvOran = parseFloat(document.getElementById('gVergiOran').value) / 100;
-        const kdvOran = parseFloat(document.getElementById('kdvOran').value) / 100;
-
-        const gvTutar = bedel * gvOran;
-        const kdvMatrah = bedel + gvTutar; // KDV gümrük vergisi eklenmiş tutardan hesaplanır
-        const kdvTutar = kdvMatrah * kdvOran;
-        const toplam = bedel + gvTutar + kdvTutar;
-
-        document.getElementById('resGV').innerText = gvTutar.toLocaleString() + " $";
-        document.getElementById('resKDV').innerText = kdvTutar.toLocaleString() + " $";
-        document.getElementById('resTotal').innerText = toplam.toLocaleString() + " $";
-        document.getElementById('hesapSonuc').classList.remove('hidden');
-    }
-
-    async function fullAnaliz() {
+// 3. ANA ANALİZ FONKSİYONU (İNTERNETTE ARA + AI İLE YORUMLA)
+async function fullAnaliz() {
     const urun = document.getElementById('urunInput').value;
     const ulke = document.getElementById('ulkeInput').value;
     const btn = document.getElementById('anaButon');
 
-    if (!urun || !ulke) return alert("Eksik bilgi!");
-    if (kredi <= 0) return alert("Kredi doldu.");
+    if (!urun || !ulke) return alert("Lütfen ürün ve ülke girin.");
+    if (!groqKey || !tavilyKey) return alert("Sistem henüz hazır değil, lütfen 2 saniye sonra tekrar deneyin.");
+    if (kredi <= 0) return alert("Günlük limitin doldu başkan.");
 
+    // Arayüzü Yükleniyor Moduna Sok
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('sonucAlani').classList.add('hidden');
     btn.disabled = true;
+    btn.innerText = "GÜNCEL MEVZUAT TARANIYOR...";
 
     try {
+        // --- ADIM 1: TAVILY İLE İNTERNETİ TARA ---
+        const searchRes = await fetch('https://api.tavily.com/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                api_key: tavilyKey,
+                query: `${ulke} menseli ${urun} ithalat gumruk vergisi oranlari ve mevzuati 2025 resmi gazete`,
+                search_depth: "advanced",
+                max_results: 5
+            })
+        });
+        const searchData = await searchRes.json();
+        const internetBilgisi = searchData.results?.map(r => r.content).join("\n\n") || "Guncel veri bulunamadi.";
+
+        btn.innerText = "GÜMRÜK RAPORU HAZIRLANIRKEN BEKLEYİN...";
+
+        // --- ADIM 2: GROQ İLE ANALİZ ET ---
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
@@ -129,68 +143,87 @@
                 messages: [
                     { 
                         role: "system", 
-                        content: `Sen 30 yıllık deneyime sahip, T.C. Ticaret Bakanlığı mevzuatına hakim kıdemli bir Gümrük Müşavirisin. 
-                        Görevin: Kullanıcının belirttiği ürün ve ülke için teknik bir gümrük raporu hazırlamaktır. 
-                        KURALLAR:
-                        1. Pazar analizi, reklam veya pazarlama tavsiyesi verme.
-                        2. Raporun en başında mutlaka muhtemel 4'lü veya 6'lı GTİP kodunu belirt.
-                        3. İthalat Rejimi Kararı, Gümrük Vergisi oranları, İlave Gümrük Vergisi (İGV) ve varsa Anti-Dumping vergilerinden bahset.
-                        4. İthalatta istenebilecek belgeleri (Kayıt Belgesi, TSE, CE, Tareks vb.) listele.
-                        5. Sadece Türkçe ve profesyonel bir üslup kullan.`
+                        content: `Sen uzman bir gümrük müşavirisin. Şu güncel internet verilerini kullanarak teknik bir rapor hazırla: ${internetBilgisi}. 
+                        Mutlaka muhtemel GTİP kodunu belirt, vergi oranlarını (GV, İGV, KDV) yaz ve gerekli belgeleri listele.` 
                     },
                     { 
                         role: "user", 
-                        content: `${ulke} menşeli ${urun} ithalatı için gümrükleme teknik raporu hazırla.`
+                        content: `${ulke} menseli ${urun} için detaylı gümrük analiz raporu yaz.` 
                     }
                 ],
-                temperature: 0.3 // Daha tutarlı ve teknik cevaplar için düşürdük
+                temperature: 0.2
             })
         });
+        
         const data = await res.json();
         const rapor = data.choices[0].message.content;
 
+        // Ekrana Yazdır
         document.getElementById('raporIcerik').innerText = rapor;
-        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " TEKNİK GÜMRÜK RAPORU";
+        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " TEKNİK ANALİZ RAPORU";
         document.getElementById('raporTarih').innerText = new Date().toLocaleString();
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('sonucAlani').classList.remove('hidden');
 
+        // Kredi Düşür
         kredi--;
         localStorage.setItem('gumrukKredi', kredi);
         document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
-    } catch (e) { alert("Bağlantı hatası!"); }
-    finally { btn.disabled = false; }
+
+    } catch (e) {
+        console.error(e);
+        alert("Bağlantı hatası! API anahtarlarını ve SQL kaydını kontrol et.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "ANALİZ ET";
+    }
 }
 
-    // PDF DÜZELTİLMİŞ VE ÇOK SAYFALI
-    function pdfIndir() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const icerik = document.getElementById('raporIcerik').innerText;
-        const baslik = document.getElementById('raporBaslik').innerText;
-        
-        const temizText = icerik
-            .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
-            .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
-            .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
-            .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
+// 4. VERGİ HESAPLAMA MOTORU
+function hesapla() {
+    const bedel = parseFloat(document.getElementById('malBedeli').value) || 0;
+    const gvOran = (parseFloat(document.getElementById('gVergiOran').value) || 0) / 100;
+    const kdvOran = (parseFloat(document.getElementById('kdvOran').value) || 0) / 100;
 
-        doc.setFont("helvetica", "bold");
-        doc.text("GUMRUK ANALIZI: " + baslik, 10, 15);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        
-        const lines = doc.splitTextToSize(temizText, 180);
-        let y = 25;
-        lines.forEach(line => {
-            if (y > 280) { doc.addPage(); y = 20; }
-            doc.text(line, 10, y);
-            y += 7;
-        });
-        doc.save(baslik + "_Raporu.pdf");
-    }
+    const gvTutar = bedel * gvOran;
+    const kdvTutar = (bedel + gvTutar) * kdvOran;
+    const toplam = bedel + gvTutar + kdvTutar;
 
-    init();
-    </script>
+    document.getElementById('resGV').innerText = gvTutar.toFixed(2) + " $";
+    document.getElementById('resKDV').innerText = kdvTutar.toFixed(2) + " $";
+    document.getElementById('resTotal').innerText = toplam.toFixed(2) + " $";
+    document.getElementById('hesapSonuc').classList.remove('hidden');
+}
+
+// 5. PDF İNDİRME FONKSİYONU (VİP TASARIM)
+function pdfIndir() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const icerik = document.getElementById('raporIcerik').innerText;
+    
+    // Türkçe karakter temizleme
+    const temizText = icerik.replace(/[ıĞÜŞÖÇİğüşöç]/g, function(letter) {
+        const mapping = {'ı':'i','Ğ':'G','Ü':'U','Ş':'S','Ö':'O','Ç':'C','İ':'I','ğ':'g','ü':'u','ş':'s','ö':'o','ç':'c'};
+        return mapping[letter];
+    });
+
+    doc.setFont("helvetica", "bold");
+    doc.text("GUMRUK ANALIZ RAPORU", 10, 15);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    
+    const lines = doc.splitTextToSize(temizText, 180);
+    let y = 25;
+    lines.forEach(line => {
+        if (y > 280) { doc.addPage(); y = 20; }
+        doc.text(line, 10, y);
+        y += 6;
+    });
+    doc.save("Gümrük_Teknik_Raporu.pdf");
+}
+
+// Sayfa açıldığında anahtarları yükle
+init();
+</script>
 </body>
 </html>
