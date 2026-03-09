@@ -134,7 +134,7 @@ async function fullAnaliz() {
 
         btn.innerText = "GÜMRÜK RAPORU HAZIRLANIRKEN BEKLEYİN...";
 
-        // --- ADIM 2: GROQ İLE ANALİZ ET ---
+        // --- ADIM 2: GROQ İLE ANALİZ ET (GÜNCEL VERİ ODAKLI) ---
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
@@ -143,15 +143,24 @@ async function fullAnaliz() {
                 messages: [
                     { 
                         role: "system", 
-                        content: `Sen uzman bir gümrük müşavirisin. Şu güncel internet verilerini kullanarak teknik bir rapor hazırla: ${internetBilgisi}. 
-                        Mutlaka muhtemel GTİP kodunu belirt, vergi oranlarını (GV, İGV, KDV) yaz ve gerekli belgeleri listele.` 
+                        content: `SEN ÇOK TECRÜBELİ BİR GÜMRÜK MÜŞAVİRİSİN VE ŞU AN 2026 YILINDAYIZ. 
+                        KENDİ ESKİ EĞİTİM VERİLERİNDEKİ VERGİ ORANLARINI UNUT. 
+                        SADECE VE SADECE SANA ŞİMDİ GETİRDİĞİM İNTERNET VERİLERİNE GÖRE RAPOR HAZIRLA.
+                        
+                        KRİTİK TALİMATLAR:
+                        1. Eğer internet bilgisinde 2024 veya 2025'te değişmiş bir vergi oranı varsa onu kullan.
+                        2. "İnternet verilerine göre..." gibi cümleler kurma, sanki o bilgi senin ana bilginmiş gibi rapor yaz.
+                        3. GTİP kodu tahminini ve güncel İGV (İlave Gümrük Vergisi) durumunu mutlaka belirt.
+                        
+                        GÜNCEL İNTERNET VERİSİ:
+                        ${internetBilgisi}` 
                     },
                     { 
                         role: "user", 
-                        content: `${ulke} menseli ${urun} için detaylı gümrük analiz raporu yaz.` 
+                        content: `Türkiye'ye ithal edilecek ${ulke} menşeli ${urun} için en güncel gümrük vergisi, KDV ve ek mali yükümlülük raporunu hazırla.` 
                     }
                 ],
-                temperature: 0.2
+                temperature: 0.1 // Daha tutarlı ve veriye sadık olması için düşürdük.
             })
         });
         
