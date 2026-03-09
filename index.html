@@ -125,7 +125,7 @@ async function fullAnaliz() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 api_key: tavilyKey,
-                query: `T.C. Ticaret Bakanlığı ${urun} ${ulke} menşeli ithalat gümrük vergisi ve İGV oranları Mart 2026 resmi gazete tebliğ`,
+                query: `${ulke} menşeli ${urun} ithalatı gümrük vergileri, İGV, güncel ithalat rejimi engelleri, izinler ve denetimler 2026`,
                 search_depth: "advanced",
                 max_results: 6,
                 include_answer: true
@@ -145,20 +145,21 @@ async function fullAnaliz() {
                 messages: [
                     { 
                         role: "system", 
-                        content: `SEN UZMAN BİR GÜMRÜK MÜŞAVİRİSİN. ŞU AN 2026 YILINDAYIZ.
+                        content: `SEN BİR GÜMRÜK DEDEKTİFİSİN VE ŞU AN 2026 YILINDAYIZ. 
+                        Kendi eski eğitim verilerini unut, sadece internetten gelen veriye odaklan.
                         
-                        KRİTİK KURALLAR:
-                        1. KDV ORANI ASLA %18 DEĞİLDİR. TÜRKİYE'DE GENEL KDV %20'DİR. RAPORDA %20 KULLAN.
-                        2. SADECE SANA VERİLEN İNTERNET VERİLERİNE ODAKLAN. ESKİ BİLGİLERİNİ KULLANMA.
-                        3. EĞER ÜRÜN ÇİN MENŞELİ İSE MUTLAKA "İLAVE GÜMRÜK VERGİSİ (İGV)" KONTROLÜ YAP.
-                        4. CEVABI PROFESYONEL BİR GÜMRÜK RAPORU FORMATINDA YAZ.
-                        
+                        KRİTİK GÖREVİN: İnternet verilerinde şu 4 "Kırmızı Bayrak"tan birini görürsen mutlaka raporla:
+                        1. KISITLAMALAR: İkinci el olması, yaş sınırı, kota veya ithalat yasağı var mı?
+                        2. EK VERGİLER: Gümrük vergisi dışında İGV, Ek Mali Yükümlülük veya Anti-Damping var mı?
+                        3. DENETİMLER: TSE, CE, TAREKS, Gözetim Belgesi veya Bakanlık İzni gerekiyor mu?
+                        4. KDV: Türkiye'de genel KDV %20'dir, bunu baz al.
+
                         GÜNCEL İNTERNET VERİLERİ: 
                         ${internetBilgisi}` 
                     },
                     { 
                         role: "user", 
-                        content: `${ulke} menşeli ${urun} için Mart 2026 itibariyle geçerli GTİP tahmini, Gümrük Vergisi, İGV ve KDV oranlarını içeren teknik rapor hazırla.` 
+                        content: `${ulke} menşeli ${urun} ithalatı için tüm engelleri, vergileri ve gerekli izinleri içeren teknik raporu hazırla.` 
                     }
                 ],
                 temperature: 0.1 // Yaratıcılığı öldür, sadece gerçeklere odaklan
