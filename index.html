@@ -8,8 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-    #sonucAlani { animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    #sonucAlani {
+        animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -24,27 +29,28 @@
     <main class="container mx-auto max-w-6xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-4 space-y-6">
+            
             <div class="bg-white p-6 rounded-2xl shadow-sm border">
                 <h2 class="font-bold mb-4 flex items-center gap-2 text-slate-700">🔍 Mevzuat Analizi</h2>
                 <input type="text" id="urunInput" placeholder="Ürün (Örn: Güneş Paneli)" class="w-full p-3 bg-slate-50 border rounded-xl mb-3 outline-none focus:ring-2 focus:ring-blue-500">
                 <input type="text" id="ulkeInput" placeholder="Ülke (Örn: Çin)" class="w-full p-3 bg-slate-50 border rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="fullAnaliz()" id="anaButon" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-blue-600 transition-all shadow-lg text-sm uppercase">ANALİZ ET</button>
+                <button onclick="fullAnaliz()" id="anaButon" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-blue-600 transition-all shadow-lg">ANALİZ ET</button>
             </div>
 
             <div class="bg-blue-50/50 p-6 rounded-2xl shadow-sm border border-blue-100">
                 <h2 class="font-bold mb-4 text-blue-800 flex items-center gap-2 text-sm uppercase tracking-wider">🧮 Maliyet Hesaplama</h2>
                 <div class="space-y-4">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Mal Bedeli ($)</label>
+                        <label class="text-[10px] font-bold text-slate-500">MAL BEDELİ ($)</label>
                         <input type="number" id="malBedeli" value="1000" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase">Gümrük Vergisi (%)</label>
+                            <label class="text-[10px] font-bold text-slate-500">GÜMRÜK VERGİSİ (%)</label>
                             <input type="number" id="gVergiOran" value="10" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase">KDV (%)</label>
+                            <label class="text-[10px] font-bold text-slate-500">KDV (%)</label>
                             <input type="number" id="kdvOran" value="20" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
                         </div>
                     </div>
@@ -67,200 +73,277 @@
 
             <div id="sonucAlani" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
-                
-                <div class="mb-6 border-b border-slate-100 pb-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <div id="gtipAlani" class="text-blue-700 font-mono text-xl font-bold mb-1"></div>
-                            <h2 id="raporBaslik" class="text-2xl font-black text-slate-800 tracking-tight"></h2>
-                            <p id="raporTarih" class="text-[10px] text-slate-400 font-mono uppercase"></p>
-                        </div>
-                        <button onclick="pdfIndir()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-transform hover:scale-105 active:scale-95 uppercase">PDF İndir</button>
-                    </div>
+                <div class="flex justify-between items-center mb-8 border-b border-slate-100 pb-6">
+                    <div>
+                        <h2 id="raporBaslik" class="text-2xl font-black text-slate-800 tracking-tight"></h2>
+<div id="riskMetre" class="hidden mb-4 p-3 rounded-lg flex items-center gap-3 border">
+    <div id="riskLamba" class="w-4 h-4 rounded-full animate-pulse"></div>
+    <span id="riskMesaj" class="font-bold uppercase tracking-wide text-sm"></span>
+</div>
 
-                    <div id="riskMetre" class="hidden p-3 rounded-lg flex items-center gap-3 border">
-                        <div id="riskLamba" class="w-4 h-4 rounded-full"></div>
-                        <span id="riskMesaj" class="font-bold uppercase tracking-wide text-xs"></span>
+<h2 id="raporBaslik" class="text-xl font-bold mb-2"></h2>
+                        <p id="raporTarih" class="text-[10px] text-slate-400 mt-1 font-mono uppercase"></p>
                     </div>
+                    <button onclick="pdfIndir()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-transform hover:scale-105 active:scale-95">PDF RAPORU AL</button>
                 </div>
-
-                <div id="raporIcerik" class="text-slate-700 leading-relaxed whitespace-pre-line text-sm mb-6"></div>
-
-                <div id="evrakAlani" class="mt-4 p-4 bg-slate-50 border-l-4 border-blue-600 rounded-r-lg hidden">
-                    <h3 class="font-bold text-blue-900 mb-3 flex items-center gap-2">📂 GÜMRÜK KLASÖRÜ (BELGELER)</h3>
-                    <ul id="evrakListesi" class="space-y-1 text-sm"></ul>
-                    
-                    <div class="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex gap-3 items-start">
-                        <span class="text-lg">⚠️</span>
-                        <div class="text-[10px] text-orange-900 leading-tight">
-                            <b>ÖNEMLİ NOT:</b> Bu belgeler 2026 yılı internet verilerine göre AI tarafından önerilmiştir. 
-                            Ürünün teknik detaylarına göre ek izinler (TSE, CE vb.) gerekebilir. 
-                            Resmi işlem öncesi mutlaka müşavirinize danışın.
-                        </div>
-                    </div>
-                </div>
+                <div id="raporIcerik" class="text-slate-700 leading-relaxed whitespace-pre-line text-sm selection:bg-blue-100"></div>
             </div>
         </div>
     </main>
 
 <script>
+// 1. AYARLAR VE SUPABASE BAĞLANTISI
 const SUPABASE_URL = 'https://tteymnbsxnuvmgfmwjnb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZXltbmJzeG51dm1nZm13am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQxMjksImV4cCI6MjA4Nzg5MDEyOX0.85bmeNzc694sXjrOFHHmBFyZseyk6hQVnVHWOZyupig';
 let _supabase, groqKey = "", tavilyKey = "";
 let kredi = localStorage.getItem('gumrukKredi') || 5;
 
+// 2. SİSTEMİ BAŞLAT (SQL'DEN ANAHTARLARI ÇEKER)
 async function init() {
     try {
         _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const { data, error } = await _supabase.from('site_ayarlari').select('anahtar_adi, anahtar_degeri');
+        
         if (data) {
             groqKey = data.find(x => x.anahtar_adi === 'groq_api_key')?.anahtar_degeri?.trim();
             tavilyKey = data.find(x => x.anahtar_adi === 'tavily_api_key')?.anahtar_degeri?.trim();
+            console.log("Sistem Hazır: Anahtarlar yüklendi ✅");
         }
-    } catch (e) { console.error("Sistem hatası:", e); }
+        if (error) console.error("Anahtar çekme hatası:", error);
+    } catch (e) {
+        console.error("Başlatma hatası:", e);
+    }
     document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
 }
 
+// 3. ANA ANALİZ FONKSİYONU (İNTERNETTE ARA + AI İLE YORUMLA)
 async function fullAnaliz() {
     const urun = document.getElementById('urunInput').value;
     const ulke = document.getElementById('ulkeInput').value;
     const btn = document.getElementById('anaButon');
 
-    if (!urun || !ulke) return alert("Ürün ve ülke giriniz.");
-    if (kredi <= 0) return alert("Günlük limit doldu.");
+    if (!urun || !ulke) return alert("Lütfen ürün ve ülke girin.");
+    if (!groqKey || !tavilyKey) return alert("Sistem anahtarları yükleniyor, lütfen bekleyin.");
+    if (kredi <= 0) return alert("Günlük limitin doldu başkan.");
 
+    // Arayüz Hazırlığı
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('sonucAlani').classList.add('hidden');
     btn.disabled = true;
+    btn.innerText = "GÜNCEL MEVZUAT TARANIYOR (2026)...";
 
     try {
-        // TAVILY ARAMA
+        // --- ADIM 1: TAVILY İLE NOKTA ATIŞI İNTERNET ARAMASI ---
+        // Sorguyu "Resmi Gazete" ve "2026" odaklı güncelledik
         const searchRes = await fetch('https://api.tavily.com/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 api_key: tavilyKey,
-                query: `${ulke} menseli ${urun} ithalat gumruk vergileri, İGV ve gerekli belgeler 2026`,
-                search_depth: "advanced"
+                query: `${ulke} menşeli ${urun} ithalatı gümrük vergileri, İGV, güncel ithalat rejimi engelleri, izinler ve denetimler 2026`,
+                search_depth: "advanced",
+                max_results: 6,
+                include_answer: true
             })
         });
         const searchData = await searchRes.json();
-        const internetBilgisi = searchData.results?.map(r => r.content).join("\n") || "Veri yok.";
+        const internetBilgisi = searchData.results?.map(r => r.content).join("\n\n") || "Güncel internet verisine ulaşılamadı.";
 
-        // GROQ ANALİZ
+        btn.innerText = "YAPAY ZEKA RAPORU YAZIYOR...";
+
+        // --- ADIM 2: GROQ İLE ANALİZ (SERT TALİMATLI) ---
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{ 
-                    role: "system", 
-                    content: `SEN BİR GÜMRÜK BAŞMÜŞAVİRİSİN. YIL 2026.
-                    Şu formatı asla bozma:
-                    1. Tahmini GTİP: [Kod]
-                    2. Gümrük Vergisi: % [Rakam]
-                    3. KDV: % [Rakam]
-                    
-                    Analizini yap ve en sonunda 'Evraklar:' başlığı açıp belgeleri madde madde yaz.
-                    İnternet Verisi: ${internetBilgisi}` 
-                },
-                { role: "user", content: `${ulke} menşeli ${urun} için rapor hazırla.` }]
+                messages: [
+                    { 
+                        role: "system", 
+                        content: `SEN BİR GÜMRÜK DEDEKTİFİSİN VE ŞU AN 2026 YILINDAYIZ. 
+                        Kendi eski eğitim verilerini unut, sadece internetten gelen veriye odaklan.
+                        
+                        KRİTİK GÖREVİN: İnternet verilerinde şu 4 "Kırmızı Bayrak"tan birini görürsen mutlaka raporla:
+                        1. KISITLAMALAR: İkinci el olması, yaş sınırı, kota veya ithalat yasağı var mı?
+                        2. EK VERGİLER: Gümrük vergisi dışında İGV, Ek Mali Yükümlülük veya Anti-Damping var mı?
+                        3. DENETİMLER: TSE, CE, TAREKS, Gözetim Belgesi veya Bakanlık İzni gerekiyor mu?
+                        4. KDV: Türkiye'de genel KDV %20'dir, bunu baz al.
+
+                        GÜNCEL İNTERNET VERİLERİ: 
+                        ${internetBilgisi}` 
+                    },
+                    { 
+                        role: "user", 
+                        content: `${ulke} menşeli ${urun} ithalatı için tüm engelleri, vergileri ve gerekli izinleri içeren teknik raporu hazırla.` 
+                    }
+                ],
+                temperature: 0.1 // Yaratıcılığı öldür, sadece gerçeklere odaklan
             })
         });
         
         const data = await res.json();
         const rapor = data.choices[0].message.content;
 
-        // --- VERİLERİ CIMBIZLA VE EKRANA BAS ---
+        // Sonuçları Ekrana Bas
         document.getElementById('raporIcerik').innerText = rapor;
-        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " ANALİZİ";
+// --- RİSK METRE ANALİZİ ---
+        const riskMetre = document.getElementById('riskMetre');
+        const riskLamba = document.getElementById('riskLamba');
+        const riskMesaj = document.getElementById('riskMesaj');
+
+        const raporMetni = rapor.toLowerCase();
+        let durum = "DÜŞÜK RİSK";
+        let renkSinifi = "bg-green-500";
+        let kutuSinifi = "bg-green-50 border-green-200 text-green-800";
+
+        // Yüksek Risk Taraması (Kırmızı)
+        if (raporMetni.includes("ikinci el") || raporMetni.includes("kullanılmış") || 
+            raporMetni.includes("izin belgesi") || raporMetni.includes("bakanlık izni") || 
+            raporMetni.includes("ithalat izni")) {
+            durum = "KRİTİK RİSK: İZNE TABİ";
+            renkSinifi = "bg-red-600";
+            kutuSinifi = "bg-red-50 border-red-200 text-red-800";
+        } 
+        // Orta Risk Taraması (Sarı)
+        else if (raporMetni.includes("igv") || raporMetni.includes("ilave gümrük") || 
+                 raporMetni.includes("denetim") || raporMetni.includes("tse") || 
+                 raporMetni.includes("gözetim") || raporMetni.includes("tareks")) {
+            durum = "ORTA RİSK: EK MALİYET VEYA DENETİM";
+            renkSinifi = "bg-yellow-500";
+            kutuSinifi = "bg-yellow-50 border-yellow-200 text-yellow-800";
+        }
+
+        // Görseli Güncelle
+        riskMetre.className = `flex items-center gap-3 p-3 rounded-lg border ${kutuSinifi}`;
+        riskLamba.className = `w-4 h-4 rounded-full animate-pulse ${renkSinifi}`;
+        riskMesaj.innerText = `RİSK DURUMU: ${durum}`;
+        riskMetre.classList.remove('hidden');
+        document.getElementById('raporBaslik').innerText = urun.toUpperCase() + " GÜNCEL ANALİZ RAPORU (2026)";
         document.getElementById('raporTarih').innerText = "Rapor Tarihi: " + new Date().toLocaleString('tr-TR');
-
-        // 1. GTİP Yakala
-        const gtipMatch = rapor.match(/Tahmini GTİP:\s*([\d.]+)/i);
-        document.getElementById('gtipAlani').innerText = gtipMatch ? "📌 GTİP: " + gtipMatch[1] : "";
-
-        // 2. Vergileri Aktar
-        const gvMatch = rapor.match(/Gümrük Vergisi:\s*%?\s*(\d+)/i);
-        const kdvMatch = rapor.match(/KDV:\s*%?\s*(\d+)/i);
-        if(gvMatch) document.getElementById('gVergiOran').value = gvMatch[1];
-        if(kdvMatch) document.getElementById('kdvOran').value = kdvMatch[1];
-
-        // 3. Risk Metre
-        const rm = document.getElementById('riskMetre');
-        const rl = document.getElementById('riskLamba');
-        const rms = document.getElementById('riskMesaj');
-        const txt = rapor.toLowerCase();
-        
-        if (txt.includes("ikinci el") || txt.includes("yasak")) {
-            rm.className = "flex items-center gap-3 p-3 rounded-lg border bg-red-50 border-red-200 text-red-800";
-            rl.className = "w-4 h-4 rounded-full animate-pulse bg-red-600";
-            rms.innerText = "RİSK: KRİTİK / YASAKLI";
-        } else if (txt.includes("tse") || txt.includes("gözetim") || txt.includes("tareks")) {
-            rm.className = "flex items-center gap-3 p-3 rounded-lg border bg-yellow-50 border-yellow-200 text-yellow-800";
-            rl.className = "w-4 h-4 rounded-full animate-pulse bg-yellow-500";
-            rms.innerText = "RİSK: ORTA (EK DENETİM)";
-        } else {
-            rm.className = "flex items-center gap-3 p-3 rounded-lg border bg-green-50 border-green-200 text-green-800";
-            rl.className = "w-4 h-4 rounded-full bg-green-500";
-            rms.innerText = "RİSK: DÜŞÜK";
-        }
-        rm.classList.remove('hidden');
-
-        // 4. Evrakları Listele (🚨 Sirenli)
-        const evrakMatch = rapor.match(/Evraklar:([\s\S]*?)(?:\n\n|$)/i);
-        if (evrakMatch && evrakMatch[1]) {
-            const maddeler = evrakMatch[1].trim().split('\n');
-            document.getElementById('evrakListesi').innerHTML = maddeler.map(m => {
-                let t = m.replace(/^[*-]/, '').trim();
-                return /CE|TSE|İzin|Tareks|Gözetim/i.test(t) 
-                    ? `<li class="text-red-700 font-bold bg-red-50 p-1 rounded">🚨 ${t}</li>`
-                    : `<li>✅ ${t}</li>`;
-            }).join('');
-            document.getElementById('evrakAlani').classList.remove('hidden');
-        }
-
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('sonucAlani').classList.remove('hidden');
+
+        // Kredi İşlemi
         kredi--;
         localStorage.setItem('gumrukKredi', kredi);
         document.getElementById('krediBox').innerText = `Kredi: ${kredi}/5`;
 
     } catch (e) {
-        alert("Bağlantı hatası!");
-        console.error(e);
+        console.error("Analiz Hatası:", e);
+        alert("Bağlantı hatası! Lütfen internetini veya API anahtarlarını kontrol et.");
     } finally {
         btn.disabled = false;
         btn.innerText = "ANALİZ ET";
     }
 }
 
+// 4. VERGİ HESAPLAMA MOTORU
 function hesapla() {
     const bedel = parseFloat(document.getElementById('malBedeli').value) || 0;
-    const gv = (parseFloat(document.getElementById('gVergiOran').value) || 0) / 100;
-    const kdv = (parseFloat(document.getElementById('kdvOran').value) || 0) / 100;
-    const gvTutar = bedel * gv;
-    const kdvTutar = (bedel + gvTutar) * kdv;
+    const gvOran = (parseFloat(document.getElementById('gVergiOran').value) || 0) / 100;
+    const kdvOran = (parseFloat(document.getElementById('kdvOran').value) || 0) / 100;
+
+    const gvTutar = bedel * gvOran;
+    const kdvTutar = (bedel + gvTutar) * kdvOran;
+    const toplam = bedel + gvTutar + kdvTutar;
+
     document.getElementById('resGV').innerText = gvTutar.toFixed(2) + " $";
     document.getElementById('resKDV').innerText = kdvTutar.toFixed(2) + " $";
-    document.getElementById('resTotal').innerText = (bedel + gvTutar + kdvTutar).toFixed(2) + " $";
+    document.getElementById('resTotal').innerText = toplam.toFixed(2) + " $";
     document.getElementById('hesapSonuc').classList.remove('hidden');
 }
 
+// 5. PDF İNDİRME FONKSİYONU (VİP TASARIM)
 function pdfIndir() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    const clean = (t) => t.replace(/[ıİğĞüÜşŞöÖçÇ]/g, (m) => ({'ı':'i','İ':'I','ğ':'g','Ğ':'G','ü':'u','Ü':'U','ş':'s','Ş':'S','ö':'o','Ö':'O','ç':'c'}[m]));
+    const icerik = document.getElementById('raporIcerik').innerText;
+    const baslik = document.getElementById('raporBaslik').innerText;
+    const tarih = document.getElementById('raporTarih').innerText;
     
-    doc.setFillColor(30, 58, 138); doc.rect(0, 0, 210, 30, 'F');
-    doc.setTextColor(255); doc.setFontSize(18); doc.text("GUMRUK AI PRO RAPORU", 10, 20);
+    // Vergi verilerini çek
+    const gv = document.getElementById('resGV').innerText || "0";
+    const kdv = document.getElementById('resKDV').innerText || "0";
+    const toplam = document.getElementById('resTotal').innerText || "0";
+
+    // 1. Türkçe Karakter Temizleme (PDF Uyumu İçin)
+    const temizle = (text) => text
+        .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
+        .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
+        .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
+        .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
+
+    const temizText = temizle(icerik);
+    const temizBaslik = temizle(baslik);
+
+    // 2. Sayfa Tasarımı ve Header
+    doc.setFillColor(30, 58, 138); // Lacivert şerit
+    doc.rect(0, 0, 210, 40, 'F');
     
-    doc.setTextColor(0); doc.setFontSize(10);
-    const lines = doc.splitTextToSize(clean(document.getElementById('raporIcerik').innerText), 180);
-    doc.text(lines, 10, 40);
-    doc.save("Gümrük_Raporu.pdf");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("GUMRUK AI PRO", 10, 20);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("PROFESYONEL MEVZUAT VE ANALIZ RAPORU", 10, 30);
+    doc.text(tarih, 150, 30);
+
+    // 3. Vergi Özet Tablosu (Eğer hesaplama yapıldıysa)
+    if (toplam !== "0") {
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("TAHMINI MALIYET OZETI", 10, 55);
+        
+        doc.setDrawColor(200, 200, 200);
+        doc.line(10, 58, 200, 58);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Gumruk Vergisi: ${gv}`, 15, 65);
+        doc.text(`KDV Tutari: ${kdv}`, 15, 72);
+        doc.setFont("helvetica", "bold");
+        doc.text(`TOPLAM TAHMINI MALIYET: ${toplam}`, 15, 82);
+        
+        doc.line(10, 86, 200, 86);
+    }
+
+    // 4. Ana Rapor İçeriği (Çok Sayfalı)
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("TEKNIK ANALIZ DETAYLARI", 10, (toplam !== "0" ? 100 : 55));
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const lines = doc.splitTextToSize(temizText, 185);
+    let y = (toplam !== "0" ? 110 : 65);
+
+    lines.forEach(line => {
+        if (y > 275) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(line, 10, y);
+        y += 6.5;
+    });
+
+    // 5. Footer (Yasal Uyarı)
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Sayfa ${i} / ${pageCount}`, 100, 290, { align: "center" });
+        doc.text("Yasal Uyari: Bu rapor yapay zeka tarafindan uretilmistir. Resmi islemlerde musavir onayi gereklidir.", 105, 295, { align: "center" });
+    }
+
+    doc.save(`${temizBaslik}_Resmi_Analiz.pdf`);
 }
 
+// Sayfa açıldığında anahtarları yükle
 init();
 </script>
 </body>
