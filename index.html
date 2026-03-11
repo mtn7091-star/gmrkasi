@@ -72,20 +72,6 @@
             </div>
 
             <div id="sonucAlani" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden">
-<div id="evrakAlani" class="mt-4 p-4 bg-gray-50 border-l-4 border-blue-600 rounded-r-lg hidden">
-    <h3 class="font-bold text-blue-900 mb-2 italic">📂 Gümrük Klasörü (Gerekli Belgeler)</h3>
-    
-    <ul id="evrakListesi" class="space-y-1 text-sm"></ul>
-    
-    <div class="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex gap-3 items-start">
-        <span class="text-lg">⚠️</span>
-        <div class="text-[10px] text-orange-900 leading-tight">
-            <b>KRİTİK NOT:</b> Bu liste 2026 yılı internet verilerine göre AI tarafından oluşturulmuştur. 
-            Özellikle <b>TSE, CE ve İthalat İzinleri</b> ürünün teknik detaylarına göre değişir. 
-            İşlem yapmadan önce mutlaka gümrük müşavirinize danışın.
-        </div>
-    </div>
-</div>
                 <div class="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
                 <div class="flex justify-between items-center mb-8 border-b border-slate-100 pb-6">
                     <div>
@@ -174,22 +160,14 @@ async function fullAnaliz() {
                 messages: [
                     { 
                         role: "system", 
-                        content: `SEN BİR GÜMRÜK BAŞMÜŞAVİRİ VE DEDEKTİFİSİN. YIL 2026.
-Kendi eski verilerini unut, sadece sana sunulan İNTERNET VERİSİNE odaklan: ${internetBilgisi}
-
-RAPORUNU ŞU FORMATTA HAZIRLA (Bu başlıklar cımbızlama için KRİTİKTİR):
-
-1. Tahmini GTİP: [Buraya en yakın 6'lı veya 12'li kodu yaz]
-2. Gümrük Vergisi: % [Sadece rakam yaz]
-3. KDV: % [Sadece rakam yaz]
-
-KRİTİK ANALİZ (Kırmızı Bayraklar):
-- KISITLAMALAR: İkinci el, kota, yaş sınırı veya yasak var mı?
-- EK VERGİLER: İGV, Anti-Damping, Ek Mali Yükümlülük var mı?
-- DENETİMLER: TSE, CE, TAREKS, Gözetim veya Bakanlık izni gerekiyor mu?
-
-Evraklar:
-(Buraya ürün ve ülke bazlı gerekli TÜM belgeleri madde madde yaz. Teknik belgeleri -CE, TSE, MSDS vb.- varsa mutlaka ekle.)`
+                        content: `SEN BİR GÜMRÜK DEDEKTİFİSİN VE ŞU AN 2026 YILINDAYIZ. 
+                        Kendi eski eğitim verilerini unut, sadece internetten gelen veriye odaklan.
+                        
+                        KRİTİK GÖREVİN: İnternet verilerinde şu 4 "Kırmızı Bayrak"tan birini görürsen mutlaka raporla:
+                        1. KISITLAMALAR: İkinci el olması, yaş sınırı, kota veya ithalat yasağı var mı?
+                        2. EK VERGİLER: Gümrük vergisi dışında İGV, Ek Mali Yükümlülük veya Anti-Damping var mı?
+                        3. DENETİMLER: TSE, CE, TAREKS, Gözetim Belgesi veya Bakanlık İzni gerekiyor mu?
+                        4. KDV: Türkiye'de genel KDV %20'dir, bunu baz al.
 
                         GÜNCEL İNTERNET VERİLERİ: 
                         ${internetBilgisi}` 
@@ -208,28 +186,6 @@ Evraklar:
 
         // Sonuçları Ekrana Bas
         document.getElementById('raporIcerik').innerText = rapor;
-// --- KRİTİK BELGE CIMBIZLAYICI ---
-const evrakKutusu = document.getElementById('evrakAlani');
-const evrakListesi = document.getElementById('evrakListesi');
-const evrakMatch = rapor.match(/Evraklar:([\s\S]*?)(?:\n\n|$)/i);
-
-if (evrakMatch && evrakMatch[1]) {
-    const maddeler = evrakMatch[1].trim().split('\n');
-    
-    evrakListesi.innerHTML = maddeler.map(m => {
-        let temiz = m.replace(/^[*-]/, '').trim();
-        
-        // Eğer belgede kritik bir anahtar kelime varsa (CE, TSE vb.)
-        if(/CE|TSE|İzin|Tareks|Gözetim|Kayıt|Bakanlık/i.test(temiz)) {
-            // Kırmızı ve sirenli göster
-            return `<li class="text-red-700 font-bold bg-red-50 p-1 rounded">🚨 ${temiz}</li>`;
-        }
-        // Standart belgeler
-        return `<li class="text-gray-700">✅ ${temiz}</li>`;
-    }).join('');
-    
-    evrakKutusu.classList.remove('hidden');
-}
 // --- RİSK METRE ANALİZİ ---
         const riskMetre = document.getElementById('riskMetre');
         const riskLamba = document.getElementById('riskLamba');
